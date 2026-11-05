@@ -36,7 +36,7 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({
         </div>
 
         <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-400 leading-relaxed">
-          &quot;Pelajari kembali aturan tata bahasamu dan bangkitlah kembali untuk menyelamatkan Grammaria!&quot;
+          &quot;Pelajari kembali aturan tata bahasamu dan bangkitlah kembali untuk menyelamatkan GramMaru!&quot;
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">

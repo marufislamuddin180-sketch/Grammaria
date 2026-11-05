@@ -18,21 +18,32 @@ const NOTES = {
   REST: 0
 };
 
+// Boosted base volume for rich, audible retro synth presence
+const BASE_MAX_GAIN = 0.32;
+
 class BgmManager {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private filterNode: BiquadFilterNode | null = null;
   private currentTrack: BgmTrackType = 'none';
   private isEnabled: boolean = true;
+  private volumeLevel: number = 0.85; // 0.0 to 1.0 (defaults high)
   private timerId: number | null = null;
   private listeners: Array<() => void> = [];
 
   constructor() {
     // Read preference if saved
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('grammaria_bgm_enabled');
-      if (saved !== null) {
-        this.isEnabled = saved === 'true';
+      const savedEnabled = localStorage.getItem('grammaru_bgm_enabled');
+      if (savedEnabled !== null) {
+        this.isEnabled = savedEnabled === 'true';
+      }
+      const savedVol = localStorage.getItem('grammaru_bgm_volume');
+      if (savedVol !== null) {
+        const parsed = parseFloat(savedVol);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+          this.volumeLevel = parsed;
+        }
       }
     }
   }
@@ -57,10 +68,11 @@ class BgmManager {
         // Gentle low-pass filter for vintage warm synthesizer tone
         this.filterNode = this.ctx.createBiquadFilter();
         this.filterNode.type = 'lowpass';
-        this.filterNode.frequency.setValueAtTime(2200, this.ctx.currentTime);
+        this.filterNode.frequency.setValueAtTime(2600, this.ctx.currentTime);
 
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.setValueAtTime(this.isEnabled ? 0.12 : 0, this.ctx.currentTime);
+        const initialGain = this.isEnabled ? BASE_MAX_GAIN * this.volumeLevel : 0;
+        this.masterGain.gain.setValueAtTime(initialGain, this.ctx.currentTime);
 
         this.filterNode.connect(this.masterGain);
         this.masterGain.connect(this.ctx.destination);
@@ -79,18 +91,39 @@ class BgmManager {
     return this.isEnabled;
   }
 
+  public getVolume(): number {
+    return this.volumeLevel;
+  }
+
+  public setVolume(val: number) {
+    this.volumeLevel = Math.max(0, Math.min(1, val));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('grammaru_bgm_volume', String(this.volumeLevel));
+    }
+
+    if (this.masterGain && this.ctx && this.isEnabled) {
+      const targetGain = BASE_MAX_GAIN * this.volumeLevel;
+      const now = this.ctx.currentTime;
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+      this.masterGain.gain.linearRampToValueAtTime(targetGain, now + 0.15);
+    }
+    this.notify();
+  }
+
   public toggleMusic(): boolean {
     this.isEnabled = !this.isEnabled;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('grammaria_bgm_enabled', String(this.isEnabled));
+      localStorage.setItem('grammaru_bgm_enabled', String(this.isEnabled));
     }
 
     if (this.masterGain && this.ctx) {
       const now = this.ctx.currentTime;
       if (this.isEnabled) {
+        const targetGain = BASE_MAX_GAIN * this.volumeLevel;
         this.masterGain.gain.cancelScheduledValues(now);
         this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
-        this.masterGain.gain.linearRampToValueAtTime(0.12, now + 0.3);
+        this.masterGain.gain.linearRampToValueAtTime(targetGain, now + 0.3);
         if (this.currentTrack !== 'none') {
           this.startLoop(this.currentTrack);
         }
@@ -120,10 +153,11 @@ class BgmManager {
     }
 
     if (this.isEnabled && this.masterGain && this.ctx) {
+      const targetGain = BASE_MAX_GAIN * this.volumeLevel;
       const now = this.ctx.currentTime;
       this.masterGain.gain.cancelScheduledValues(now);
       this.masterGain.gain.setValueAtTime(0.001, now);
-      this.masterGain.gain.linearRampToValueAtTime(0.12, now + 0.5);
+      this.masterGain.gain.linearRampToValueAtTime(targetGain, now + 0.4);
     }
 
     this.startLoop(track);
@@ -219,10 +253,10 @@ class BgmManager {
       NOTES.E3, NOTES.G3, NOTES.B3, NOTES.E4,
     ];
 
-    // Schedule Bass
+    // Schedule Bass with richer presence
     let curr = start;
     bassline.forEach((item) => {
-      this.playTone(item.note, curr, item.duration * beat * 0.85, 'sawtooth', 0.28);
+      this.playTone(item.note, curr, item.duration * beat * 0.88, 'sawtooth', 0.38);
       curr += item.duration * beat;
     });
 
@@ -231,7 +265,7 @@ class BgmManager {
     for (let i = 0; i < 32; i++) {
       const freq = arpeggio[i % arpeggio.length];
       const t = start + i * sixteenth;
-      this.playTone(freq, t, sixteenth * 0.7, 'square', 0.16);
+      this.playTone(freq, t, sixteenth * 0.72, 'square', 0.24);
     }
   }
 
@@ -250,7 +284,7 @@ class BgmManager {
 
     let curr = start;
     bassline.forEach((item) => {
-      this.playTone(item.note, curr, item.duration * beat * 0.9, 'sawtooth', 0.32);
+      this.playTone(item.note, curr, item.duration * beat * 0.92, 'sawtooth', 0.42);
       curr += item.duration * beat;
     });
 
@@ -272,7 +306,7 @@ class BgmManager {
     ];
 
     lead.forEach((item) => {
-      this.playTone(item.note, start + item.time * beat, item.dur * beat * 0.85, 'square', 0.22);
+      this.playTone(item.note, start + item.time * beat, item.dur * beat * 0.88, 'square', 0.30);
     });
   }
 
@@ -288,11 +322,11 @@ class BgmManager {
     chords.forEach((chord) => {
       const t = start + chord.time * beat;
       // Warm bass
-      this.playTone(chord.bass, t, chord.dur * beat * 0.9, 'triangle', 0.35);
+      this.playTone(chord.bass, t, chord.dur * beat * 0.92, 'triangle', 0.42);
 
       // Polyphonic synth brass pad
       chord.notes.forEach((freq) => {
-        this.playTone(freq, t, chord.dur * beat * 0.85, 'sawtooth', 0.15);
+        this.playTone(freq, t, chord.dur * beat * 0.88, 'sawtooth', 0.22);
       });
     });
 
@@ -307,7 +341,7 @@ class BgmManager {
     const sixteenth = beat / 2;
     for (let i = 0; i < 32; i++) {
       const freq = sparkles[i % sparkles.length];
-      this.playTone(freq, start + i * sixteenth, sixteenth * 0.6, 'sine', 0.14);
+      this.playTone(freq, start + i * sixteenth, sixteenth * 0.65, 'sine', 0.20);
     }
   }
 
@@ -322,16 +356,16 @@ class BgmManager {
 
     chords.forEach((c) => {
       const t = start + c.time * beat;
-      this.playTone(c.bass, t, c.dur * beat * 0.9, 'triangle', 0.3);
+      this.playTone(c.bass, t, c.dur * beat * 0.92, 'triangle', 0.38);
       c.chord.forEach((note) => {
-        this.playTone(note, t, c.dur * beat * 0.8, 'sine', 0.18);
+        this.playTone(note, t, c.dur * beat * 0.85, 'sine', 0.24);
       });
     });
 
     // Gentle harp plucks
     const plucks = [NOTES.E4, NOTES.A4, NOTES.C5, NOTES.B4, NOTES.A4, NOTES.G4, NOTES.E4, NOTES.D4];
     plucks.forEach((note, idx) => {
-      this.playTone(note, start + idx * beat * 2, beat * 1.5, 'triangle', 0.2);
+      this.playTone(note, start + idx * beat * 2, beat * 1.6, 'triangle', 0.28);
     });
   }
 }

@@ -179,3 +179,39 @@
   animation: frameHitFlash 0.3s steps(3, end) forwards;
 }
 
+.animate-shake.animate-hit-flash,
+.animate-hit-flash.animate-shake {
+  animation: shake 0.35s steps(4, end), frameHitFlash 0.3s steps(3, end) forwards;
+}
+
+/* 10. Sector Defeated / Victory Celebration Animations */
+@keyframes victoryBannerPop {
+  0% { transform: scale(0.65) translateY(24px); opacity: 0; }
+  60% { transform: scale(1.06) translateY(-6px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animate-victory-banner {
+  animation: victoryBannerPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes purifyAura {
+  0% { filter: brightness(1) drop-shadow(0 0 0 rgba(234, 179, 8, 0)); }
+  50% { filter: brightness(2.2) drop-shadow(0 0 35px rgba(234, 179, 8, 0.95)) hue-rotate(-20deg); transform: scale(1.08); }
+  100% { filter: brightness(0.2) drop-shadow(0 0 10px rgba(234, 179, 8, 0.4)); opacity: 0.15; transform: scale(0.92); }
+}
+
+.animate-purify-defeat {
+  animation: purifyAura 1.4s ease-out forwards;
+}
+
+@keyframes goldPulse {
+  0%, 100% { border-color: rgba(234, 179, 8, 0.5); box-shadow: 0 0 15px rgba(234, 179, 8, 0.2); }
+  50% { border-color: rgba(250, 204, 21, 1); box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); }
+}
+
+.animate-gold-pulse {
+  animation: goldPulse 1.8s ease-in-out infinite;
+}
+
+

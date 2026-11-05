@@ -9,13 +9,43 @@ export interface Player {
   exp: number;
   expNeeded: number;
   potions: number;
+  scrollEliminate: number;
+  smokeBombs: number;
+  damageRunes: number;
+  aegisWards: number;
+  skillCooldown: number;
   damageMod: number;
   questionsAnswered: number;
   correctAnswers: number;
   potionsUsed: number;
+  itemsUsed: number;
   totalDamageDealt: number;
   totalDamageTaken: number;
 }
+
+export type ItemType = 'potion' | 'scrollEliminate' | 'smokeBomb' | 'damageRune' | 'aegisWard';
+
+export interface ConsumableItemInfo {
+  id: ItemType;
+  name: string;
+  shortName: string;
+  description: string;
+  effect: string;
+  icon: string;
+  color: string;
+}
+
+export interface ClassActiveSkillInfo {
+  id: string;
+  name: string;
+  artifactName: string;
+  tagline: string;
+  cooldownMax: number;
+  description: string;
+  effectLabel: string;
+  icon: string;
+}
+
 
 export interface GrammarQuestion {
   id: string;
@@ -64,3 +94,16 @@ export interface BattleLogEntry {
   heal?: number;
   isCritical?: boolean;
 }
+
+export interface CampaignStageInfo {
+  id: number;
+  title: string;
+  subtitle: string;
+  focus: string;
+  description: string;
+  badge: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  accentColor: string;
+  sectorsCount: number;
+}
+

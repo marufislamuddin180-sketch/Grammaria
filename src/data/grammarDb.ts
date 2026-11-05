@@ -1,451 +1,511 @@
 import { GrammarQuestion } from '../types/game';
+import { STAGE_1_GRAMMAR_DB } from './grammarDbStage1';
+import { STAGE_3_GRAMMAR_DB } from './grammarDbStage3';
 
-// 30 Unique Questions organized specifically by Region / Monster Encounter
-export const REGION_GRAMMAR_DB: Record<number, GrammarQuestion[]> = {
-  // Region 1: Typo Goblin (Focus: Spelling, Simple Past, Irregular Verbs, Articles, Auxiliary)
+// Re-export individual stage databases
+export { STAGE_1_GRAMMAR_DB } from './grammarDbStage1';
+export { STAGE_3_GRAMMAR_DB } from './grammarDbStage3';
+
+// Stage 2 (Wilayah 1-5): 16 English Tenses across Sectors 1-4, and Conjunctions for the Final Boss Sector 5
+export const STAGE_2_GRAMMAR_DB: Record<number, GrammarQuestion[]> = {
+  // =========================================================================
+  // SEKTOR 1 (WILAYAH 1): 4 PRESENT TENSES
+  // 1. Simple Present | 2. Present Continuous | 3. Present Perfect | 4. Present Perfect Continuous
+  // =========================================================================
   0: [
     {
-      id: 'r1_q1',
-      monster_text: "Yesterday, the Goblin say that he want all our gold!",
-      question: "Pilih perbaikan kalimat yang benar (Simple Past Tense):",
+      id: 'sec1_q1',
+      monster_text: "Every dawn, the castle sentry sleep at his post!",
+      question: "Perbaiki Simple Present Tense untuk subjek tunggal orang ketiga (Habitual Action):",
       options: [
-        "Yesterday, the Goblin said that he wanted all our gold.",
-        "Yesterday, the Goblin says that he wants all our gold.",
-        "Yesterday, the Goblin had said that he wanting all our gold."
+        "Every dawn, the castle sentry sleeps at his post.",
+        "Every dawn, the castle sentry is sleeping at his post.",
+        "Every dawn, the castle sentry slept at his post."
       ],
       correct: 0,
-      explanation: "Keterangan waktu 'Yesterday' membutuhkan Simple Past Tense ('said' dan 'wanted'), bukan verb 1 ('say', 'want').",
-      category: "Past Tense",
+      explanation: "Simple Present Tense (S + V1-s/es) digunakan untuk rutinitas/fakta. Subjek tunggal 'the castle sentry' membutuhkan kata kerja berakhiran -s ('sleeps').",
+      category: "1. Simple Present Tense",
       regionIndex: 0
     },
     {
-      id: 'r1_q2',
-      monster_text: "She do not knows the secret incantation to break the curse.",
-      question: "Pilih perbaikan Subject-Verb / Auxiliary yang benar:",
+      id: 'sec1_q2',
+      monster_text: "She do not knows the sacred formula to awaken the holy sword.",
+      question: "Perbaiki bentuk negatif Simple Present Tense (Auxiliary + Bare Verb):",
       options: [
-        "She does not knows the secret incantation.",
-        "She does not know the secret incantation.",
-        "She do not know the secret incantation."
-      ],
-      correct: 1,
-      explanation: "Untuk subjek tunggal orang ketiga ('She'), gunakan auxiliary 'does not' diikuti oleh Bare Infinitive/Verb 1 murni ('know', bukan 'knows').",
-      category: "Auxiliary Verbs",
-      regionIndex: 0
-    },
-    {
-      id: 'r1_q3',
-      monster_text: "The goblin thief stealed three enchanted diamonds from our satchel.",
-      question: "Perbaiki bentuk kata kerja lampau tak beraturan (Irregular Verb):",
-      options: [
-        "The goblin thief stoled three enchanted diamonds from our satchel.",
-        "The goblin thief stole three enchanted diamonds from our satchel.",
-        "The goblin thief stolen three enchanted diamonds from our satchel."
-      ],
-      correct: 1,
-      explanation: "Bentuk Simple Past (V2) dari 'steal' adalah 'stole', bukan 'stealed' atau 'stoled'.",
-      category: "Irregular Verbs",
-      regionIndex: 0
-    },
-    {
-      id: 'r1_q4',
-      monster_text: "Every morning, the castle guards patrols the courtyard.",
-      question: "Perbaiki kesesuaian Subject-Verb Agreement:",
-      options: [
-        "Every morning, the castle guards patrol the courtyard.",
-        "Every morning, the castle guards is patrolling the courtyard.",
-        "Every morning, the castle guard patrol the courtyard."
+        "She does not know the sacred formula to awaken the holy sword.",
+        "She does not knows the sacred formula to awaken the holy sword.",
+        "She do not know the sacred formula to awaken the holy sword."
       ],
       correct: 0,
-      explanation: "Subjek jamak ('the castle guards') membutuhkan kata kerja jamak tanpa akhiran -s ('patrol').",
-      category: "Subject-Verb Agreement",
+      explanation: "Rumus negatif Simple Present: S + does not + Verb 1 murni (Bare Infinitive). Gunakan 'does not know', bukan 'knows'.",
+      category: "1. Simple Present (Negative)",
       regionIndex: 0
     },
     {
-      id: 'r1_q5',
-      monster_text: "There is many small goblins hiding behind those mossy boulders.",
-      question: "Perbaiki penggunaan 'There is / There are' untuk subjek jamak:",
+      id: 'sec1_q3',
+      monster_text: "Look! The fiery goblin is attack our supply wagon right now!",
+      question: "Perbaiki Present Continuous Tense untuk aksi yang sedang berlangsung saat ini:",
       options: [
-        "There are many small goblins hiding behind those mossy boulders.",
-        "There were many small goblin hiding behind those mossy boulders.",
-        "There is many small goblin hiding behind those mossy boulders."
+        "Look! The fiery goblin is attacking our supply wagon right now!",
+        "Look! The fiery goblin attacks our supply wagon right now!",
+        "Look! The fiery goblin is attacked our supply wagon right now!"
       ],
       correct: 0,
-      explanation: "Kata benda yang mengikuti adalah jamak ('many small goblins'), sehingga menggunakan 'There are', bukan 'There is'.",
-      category: "Existential There",
+      explanation: "Kata penanda 'Look!' dan 'right now' menandakan aksi sedang berlangsung. Rumus Present Continuous: S + is/am/are + V-ing ('is attacking').",
+      category: "2. Present Continuous Tense",
       regionIndex: 0
     },
     {
-      id: 'r1_q6',
-      monster_text: "He gave an enchanted sword to a ancient warrior.",
-      question: "Perbaiki penggunaan artikel 'a' dan 'an' yang tepat:",
+      id: 'sec1_q4',
+      monster_text: "The brave paladins has already cleared the outer dungeon perimeter.",
+      question: "Perbaiki Present Perfect Tense (Kesesuaian Subjek Jamak 'Paladins'):",
       options: [
-        "He gave a enchanted sword to a ancient warrior.",
-        "He gave an enchanted sword to an ancient warrior.",
-        "He gave a enchanted sword to an ancient warrior."
+        "The brave paladins have already cleared the outer dungeon perimeter.",
+        "The brave paladins has already clear the outer dungeon perimeter.",
+        "The brave paladins have already clear the outer dungeon perimeter."
       ],
-      correct: 1,
-      explanation: "Gunakan artikel 'an' sebelum kata yang diawali bunyi vokal ('an enchanted', 'an ancient').",
-      category: "Articles",
+      correct: 0,
+      explanation: "Rumus Present Perfect: S + have/has + Past Participle (V3). Subjek jamak 'paladins' menggunakan 'have', bukan 'has'.",
+      category: "3. Present Perfect Tense",
+      regionIndex: 0
+    },
+    {
+      id: 'sec1_q5',
+      monster_text: "Our elven scholar is translating this ancient runic scroll for three straight hours.",
+      question: "Perbaiki Present Perfect Continuous Tense untuk durasi aksi yang masih berlanjut:",
+      options: [
+        "Our elven scholar has been translating this ancient runic scroll for three straight hours.",
+        "Our elven scholar was translating this ancient runic scroll for three straight hours.",
+        "Our elven scholar has translated this ancient runic scroll since three straight hours."
+      ],
+      correct: 0,
+      explanation: "Untuk kegiatan yang dimulai di masa lampau dan masih berlanjut hingga detik ini dengan keterangan durasi 'for three straight hours', gunakan Present Perfect Continuous: S + have/has + been + V-ing ('has been translating').",
+      category: "4. Present Perfect Continuous",
+      regionIndex: 0
+    },
+    {
+      id: 'sec1_q6',
+      monster_text: "They have been lived in the sanctuary since the war started.",
+      question: "Pilih rumus Present Perfect Continuous yang tepat (been + V-ing):",
+      options: [
+        "They have been living in the sanctuary since the war started.",
+        "They have lived in the sanctuary for the war started.",
+        "They are living in the sanctuary since the war started."
+      ],
+      correct: 0,
+      explanation: "Rumus Present Perfect Continuous adalah have/has + been + V-ing ('have been living'). Penanda titik awal waktu lampau menggunakan 'since'.",
+      category: "4. Present Perfect Continuous",
       regionIndex: 0
     }
   ],
 
-  // Region 2: Tense-Twisting Troll (Focus: Present Continuous, Perfect Tenses, Timeline Sequence)
+  // =========================================================================
+  // SEKTOR 2 (WILAYAH 2): 4 PAST TENSES
+  // 5. Simple Past | 6. Past Continuous | 7. Past Perfect | 8. Past Perfect Continuous
+  // =========================================================================
   1: [
     {
-      id: 'r2_q1',
-      monster_text: "Look! The dragon is fly over the burning village!",
-      question: "Pilih perbaikan kalimat yang benar (Present Continuous):",
+      id: 'sec2_q1',
+      monster_text: "Yesterday, the mountain troll stealed the royal crystal from the caravan.",
+      question: "Perbaiki bentuk kata kerja lampau tak beraturan (Irregular Simple Past):",
       options: [
-        "Look! The dragon flies over the burning village!",
-        "Look! The dragon is flying over the burning village!",
-        "Look! The dragon is flied over the burning village!"
-      ],
-      correct: 1,
-      explanation: "Kata seru 'Look!' menandakan aksi sedang berlangsung saat dibicarakan. Rumus: to be + V-ing ('is flying').",
-      category: "Present Continuous",
-      regionIndex: 1
-    },
-    {
-      id: 'r2_q2',
-      monster_text: "They has went into the dark cavern without torches.",
-      question: "Pilih perbaikan Present Perfect Tense yang tepat:",
-      options: [
-        "They have went into the dark cavern without torches.",
-        "They have gone into the dark cavern without torches.",
-        "They has gone into the dark cavern without torches."
-      ],
-      correct: 1,
-      explanation: "Present Perfect untuk subjek jamak 'They' menggunakan 'have' diikuti Past Participle (V3 'gone', bukan V2 'went').",
-      category: "Present Perfect",
-      regionIndex: 1
-    },
-    {
-      id: 'r2_q3',
-      monster_text: "By the time the royal cavalry arrived, the troll already destroyed the bridge.",
-      question: "Pilih perbaikan Past Perfect untuk kejadian yang terjadi lebih awal di masa lalu:",
-      options: [
-        "By the time the royal cavalry arrived, the troll had already destroyed the bridge.",
-        "By the time the royal cavalry had arrived, the troll already destroyed the bridge.",
-        "By the time the royal cavalry arrived, the troll has already destroyed the bridge."
+        "Yesterday, the mountain troll stole the royal crystal from the caravan.",
+        "Yesterday, the mountain troll stolen the royal crystal from the caravan.",
+        "Yesterday, the mountain troll was stealed the royal crystal from the caravan."
       ],
       correct: 0,
-      explanation: "Kejadian yang sudah selesai sebelum kejadian masa lalu lainnya ('arrived') wajib menggunakan Past Perfect: had + V3 ('had already destroyed').",
-      category: "Past Perfect",
+      explanation: "Simple Past Tense (S + V2) dari kata kerja tidak beraturan 'steal' adalah 'stole' (steal - stole - stolen), bukan 'stealed'.",
+      category: "5. Simple Past Tense",
       regionIndex: 1
     },
     {
-      id: 'r2_q4',
-      monster_text: "While the wizard prepared the potion, the troll suddenly attack.",
-      question: "Perbaiki keselarasan Tense dalam kalimat lampau gabungan:",
+      id: 'sec2_q2',
+      monster_text: "The royal vanguard did not retreated despite the troll's thunderous roar.",
+      question: "Perbaiki kalimat negatif Simple Past (did not + Verb 1):",
       options: [
-        "While the wizard was preparing the potion, the troll suddenly attacked.",
-        "While the wizard prepares the potion, the troll suddenly attacked.",
-        "While the wizard had prepared the potion, the troll suddenly attack."
+        "The royal vanguard did not retreat despite the troll's thunderous roar.",
+        "The royal vanguard did not retreats despite the troll's thunderous roar.",
+        "The royal vanguard was not retreated despite the troll's thunderous roar."
       ],
       correct: 0,
-      explanation: "Aksi panjang yang sedang berlangsung di masa lampau menggunakan Past Continuous ('was preparing'), disela oleh aksi pendek Simple Past ('attacked').",
-      category: "Past Continuous Interruption",
+      explanation: "Setelah auxiliary lampau 'did not', kata kerja harus kembali ke bentuk Verb 1 murni (Bare Infinitive): 'did not retreat'.",
+      category: "5. Simple Past (Negative)",
       regionIndex: 1
     },
     {
-      id: 'r2_q5',
-      monster_text: "The troll is guarding this bridge since the third age.",
-      question: "Perbaiki penggunaan Tense untuk durasi aksi dari masa lampau hingga kini:",
+      id: 'sec2_q3',
+      monster_text: "While the troll was slept soundly, the stealthy rogue took back the stolen banner.",
+      question: "Perbaiki Past Continuous Tense untuk aksi yang sedang berlangsung di masa lampau:",
       options: [
-        "The troll has been guarding this bridge since the third age.",
-        "The troll guarded this bridge since the third age.",
-        "The troll will be guarding this bridge since the third age."
+        "While the troll was sleeping soundly, the stealthy rogue took back the stolen banner.",
+        "While the troll is sleeping soundly, the stealthy rogue took back the stolen banner.",
+        "While the troll were sleeping soundly, the stealthy rogue took back the stolen banner."
       ],
       correct: 0,
-      explanation: "Aksi yang dimulai di masa lampau dan masih berlanjut hingga sekarang dengan penanda 'since' menggunakan Present Perfect Continuous ('has been guarding').",
-      category: "Present Perfect Continuous",
+      explanation: "Rumus Past Continuous Tense: S + was/were + V-ing ('was sleeping'). Subjek tunggal 'the troll' berpasangan dengan 'was'.",
+      category: "6. Past Continuous Tense",
       regionIndex: 1
     },
     {
-      id: 'r2_q6',
-      monster_text: "Tomorrow morning, our party entered the sacred dungeon.",
-      question: "Perbaiki keterangan waktu 'Tomorrow morning' dengan Tense yang tepat:",
+      id: 'sec2_q4',
+      monster_text: "By the time our reinforcements arrived, the troll already demolished the stone bridge.",
+      question: "Perbaiki Past Perfect Tense untuk kejadian yang sudah tuntas sebelum peristiwa lampau lain:",
       options: [
-        "Tomorrow morning, our party will enter the sacred dungeon.",
-        "Tomorrow morning, our party had entered the sacred dungeon.",
-        "Tomorrow morning, our party was entering the sacred dungeon."
+        "By the time our reinforcements arrived, the troll had already demolished the stone bridge.",
+        "By the time our reinforcements arrived, the troll has already demolished the stone bridge.",
+        "By the time our reinforcements had arrived, the troll already demolished the stone bridge."
       ],
       correct: 0,
-      explanation: "'Tomorrow morning' menunjuk ke masa depan, sehingga membutuhkan Simple Future Tense ('will enter').",
-      category: "Future Tense",
+      explanation: "Past Perfect Tense (S + had + V3) digunakan untuk aksi yang terjadi lebih dahulu sebelum kejadian lampau lainnya ('arrived'). Maka gunakan 'had already demolished'.",
+      category: "7. Past Perfect Tense",
+      regionIndex: 1
+    },
+    {
+      id: 'sec2_q5',
+      monster_text: "The troll had been terrorize the mountain pass for twenty years before we arrived.",
+      question: "Perbaiki bentuk Past Perfect Continuous Tense (had been + V-ing):",
+      options: [
+        "The troll had been terrorizing the mountain pass for twenty years before we arrived.",
+        "The troll has been terrorizing the mountain pass for twenty years before we arrived.",
+        "The troll was terrorizing the mountain pass for twenty years before we arrived."
+      ],
+      correct: 0,
+      explanation: "Past Perfect Continuous Tense (S + had + been + V-ing) menekankan durasi aksi berkelanjutan di masa lampau sebelum disusul peristiwa lampau lain ('before we arrived').",
+      category: "8. Past Perfect Continuous",
+      regionIndex: 1
+    },
+    {
+      id: 'sec2_q6',
+      monster_text: "We were exhausted because we had been marched through the swamp all night.",
+      question: "Perbaiki bentuk kata kerja Past Perfect Continuous (had been marching):",
+      options: [
+        "We were exhausted because we had been marching through the swamp all night.",
+        "We were exhausted because we have been marching through the swamp all night.",
+        "We were exhausted because we were marched through the swamp all night."
+      ],
+      correct: 0,
+      explanation: "Aksi lampau yang berlangsung terus-menerus dan menyebabkan dampak di masa lampau ('were exhausted') dinyatakan dengan Past Perfect Continuous: had + been + V-ing ('had been marching').",
+      category: "8. Past Perfect Continuous",
       regionIndex: 1
     }
   ],
 
-  // Region 3: Comma Splice Dragon (Focus: Comma Splices, Semicolons, Run-on Sentences, Conjunctive Adverbs)
+  // =========================================================================
+  // SEKTOR 3 (WILAYAH 3): 4 FUTURE TENSES
+  // 9. Simple Future | 10. Future Continuous | 11. Future Perfect | 12. Future Perfect Continuous
+  // =========================================================================
   2: [
     {
-      id: 'r3_q1',
-      monster_text: "The potion was bitter, he drank it anyway to survive.",
-      question: "Perbaiki kesalahan Comma Splice (dua klausa independen dipisah hanya koma):",
+      id: 'sec3_q1',
+      monster_text: "Tomorrow morning, the dragon will scorched the entire valley!",
+      question: "Perbaiki Simple Future Tense (Modal 'will' + Bare Infinitive):",
       options: [
-        "The potion was bitter; he drank it anyway to survive.",
-        "The potion was bitter he drank it anyway to survive.",
-        "The potion was bitter, but drank it anyway to survive."
+        "Tomorrow morning, the dragon will scorch the entire valley!",
+        "Tomorrow morning, the dragon will scorches the entire valley!",
+        "Tomorrow morning, the dragon will scorching the entire valley!"
       ],
       correct: 0,
-      explanation: "Comma splice diatasi dengan mengganti koma dengan titik koma (;) atau menambahkan coordinating conjunction lengkap (', but he drank...').",
-      category: "Comma Splice",
+      explanation: "Rumus Simple Future: S + will + Verb 1 murni (Bare Infinitive). Setelah modal 'will', jangan tambahkan akhiran -ed atau -s ('will scorch').",
+      category: "9. Simple Future Tense",
       regionIndex: 2
     },
     {
-      id: 'r3_q2',
-      monster_text: "The dragon exhaled a torrent of fire, our wooden shields incinerated instantly.",
-      question: "Perbaiki Comma Splice dengan konjungsi subordinatif yang tepat:",
+      id: 'sec3_q2',
+      monster_text: "Look at those crackling lightning clouds! The storm will strike us in minutes.",
+      question: "Pilih bentuk Future berbasis bukti langsung saat ini ('be going to'):",
       options: [
-        "When the dragon exhaled a torrent of fire, our wooden shields incinerated instantly.",
-        "The dragon exhaled a torrent of fire, and our wooden shields incinerated instantly.",
-        "The dragon exhaled a torrent of fire our wooden shields incinerated instantly."
+        "Look at those crackling lightning clouds! The storm is going to strike us in minutes.",
+        "Look at those crackling lightning clouds! The storm strikes us in minutes.",
+        "Look at those crackling lightning clouds! The storm will be strike us in minutes."
       ],
       correct: 0,
-      explanation: "Mengubah salah satu klausa menjadi dependent clause dengan 'When' menciptakan kalimat kompleks yang benar secara gramatikal.",
-      category: "Complex Sentences",
+      explanation: "Ketika ada bukti nyata di depan mata saat ini ('Look at those clouds'), 'be going to' lebih tepat digunakan untuk prediksi masa depan yang sudah pasti terjadi dalam waktu dekat.",
+      category: "9. Simple Future (be going to)",
       regionIndex: 2
     },
     {
-      id: 'r3_q3',
-      monster_text: "We reached the dragon's lair, however the beast had flown away.",
-      question: "Perbaiki penggunaan tanda baca pada konjungsi adverba 'however':",
+      id: 'sec3_q3',
+      monster_text: "At this exact hour tomorrow, our warriors will soaring above the dragon's lair.",
+      question: "Perbaiki Future Continuous Tense (will be + V-ing) untuk aksi yang sedang berlangsung di masa depan:",
       options: [
-        "We reached the dragon's lair; however, the beast had flown away.",
-        "We reached the dragon's lair, however, the beast had flown away.",
-        "We reached the dragon's lair however; the beast had flown away."
+        "At this exact hour tomorrow, our warriors will be soaring above the dragon's lair.",
+        "At this exact hour tomorrow, our warriors will soar above the dragon's lair.",
+        "At this exact hour tomorrow, our warriors will been soaring above the dragon's lair."
       ],
       correct: 0,
-      explanation: "'However' yang menghubungkan dua klausa independen harus didahului titik koma (;) dan diikuti koma (,).",
-      category: "Conjunctive Adverbs",
+      explanation: "Rumus Future Continuous Tense: S + will + be + V-ing ('will be soaring'). Digunakan untuk menyatakan aksi yang sedang dalam proses pada titik waktu spesifik di masa depan.",
+      category: "10. Future Continuous Tense",
       regionIndex: 2
     },
     {
-      id: 'r3_q4',
-      monster_text: "The dragon scales are impenetrable steel weapons cannot pierce them.",
-      question: "Perbaiki Run-on Sentence (dua kalimat tanpa tanda hubung sama sekali):",
+      id: 'sec3_q4',
+      monster_text: "By sunset tomorrow, the mages will completed the defensive barrier.",
+      question: "Perbaiki Future Perfect Tense (will have + V3) untuk target selesai sebelum tenggat waktu:",
       options: [
-        "The dragon scales are impenetrable; steel weapons cannot pierce them.",
-        "The dragon scales are impenetrable steel, weapons cannot pierce them.",
-        "The dragon scales are impenetrable, steel weapons cannot pierce them."
+        "By sunset tomorrow, the mages will have completed the defensive barrier.",
+        "By sunset tomorrow, the mages will had completed the defensive barrier.",
+        "By sunset tomorrow, the mages will be completed the defensive barrier."
       ],
       correct: 0,
-      explanation: "Run-on sentence dapat dipisahkan secara elegan dengan Semicolon (;) untuk menghubungkan dua ide yang berhubungan erat.",
-      category: "Run-on Sentences",
+      explanation: "Rumus Future Perfect Tense: S + will + have + Past Participle (V3). Keterangan waktu diawali 'By + waktu masa depan' menandakan aksi sudah selesai sebelum waktu tersebut tercapai.",
+      category: "11. Future Perfect Tense",
       regionIndex: 2
     },
     {
-      id: 'r3_q5',
-      monster_text: "The dragon roared, the tremors shook the cavern walls.",
-      question: "Perbaiki Comma Splice menggunakan coordinating conjunction (FANBOYS):",
+      id: 'sec3_q5',
+      monster_text: "By midnight, the dragon will have been fly across the sky for twelve hours straight.",
+      question: "Perbaiki Future Perfect Continuous Tense (will have been + V-ing):",
       options: [
-        "The dragon roared, and the tremors shook the cavern walls.",
-        "The dragon roared but the tremors shook the cavern walls.",
-        "The dragon roared, so tremors shook the cavern walls."
+        "By midnight, the dragon will have been flying across the sky for twelve hours straight.",
+        "By midnight, the dragon will have flying across the sky for twelve hours straight.",
+        "By midnight, the dragon will be flying across the sky since twelve hours straight."
       ],
       correct: 0,
-      explanation: "Dua klausa independen dapat dihubungkan dengan koma diikuti coordinating conjunction 'and' (, and).",
-      category: "Coordinating Conjunctions",
+      explanation: "Rumus Future Perfect Continuous Tense: S + will + have + been + V-ing ('will have been flying'). Digunakan untuk mengukur durasi aksi yang terus berjalan hingga titik waktu tertentu di masa depan.",
+      category: "12. Future Perfect Continuous",
       regionIndex: 2
     },
     {
-      id: 'r3_q6',
-      monster_text: "The beast was wounded, therefore it fought with ferocious desperation.",
-      question: "Perbaiki tanda baca sebelum kata transisi 'therefore':",
+      id: 'sec3_q6',
+      monster_text: "By next year, the grand temple will have been stand atop the peak for a millennium.",
+      question: "Pilih bentuk kata kerja Future Perfect Continuous yang benar:",
       options: [
-        "The beast was wounded; therefore, it fought with ferocious desperation.",
-        "The beast was wounded, therefore, it fought with ferocious desperation.",
-        "The beast was wounded therefore, it fought with ferocious desperation."
+        "By next year, the grand temple will have been standing atop the peak for a millennium.",
+        "By next year, the grand temple will has been standing atop the peak for a millennium.",
+        "By next year, the grand temple will have been stood atop the peak for a millennium."
       ],
       correct: 0,
-      explanation: "'Therefore' di antara dua klausa independen membutuhkan titik koma (;) sebelumnya dan koma (,) sesudahnya.",
-      category: "Transition Signals",
+      explanation: "Rumus: will + have (selalu 'have', bukan 'has') + been + V-ing ('standing').",
+      category: "12. Future Perfect Continuous",
       regionIndex: 2
     }
   ],
 
-  // Region 4: Dangling Modifier Chimera (Focus: Dangling Modifiers, Misplaced Modifiers, Collective Nouns, Pronouns)
+  // =========================================================================
+  // SEKTOR 4 (WILAYAH 4): 4 PAST FUTURE TENSES
+  // 13. Simple Past Future | 14. Past Future Continuous | 15. Past Future Perfect | 16. Past Future Perfect Continuous
+  // =========================================================================
   3: [
     {
-      id: 'r4_q1',
-      monster_text: "Wandering through the misty forest, the haunted castle appeared.",
-      question: "Perbaiki kesalahan Dangling Modifier berikut:",
+      id: 'sec4_q1',
+      monster_text: "The High Oracle promised that the chosen hero will liberate the kingdom.",
+      question: "Perbaiki Simple Past Future Tense dalam kalimat tak langsung (Indirect/Reported Speech):",
       options: [
-        "Wandering through the misty forest, the heroes saw the haunted castle appear.",
-        "The haunted castle appeared, wandering through the misty forest.",
-        "Wandering through the misty forest, appearing was the haunted castle."
+        "The High Oracle promised that the chosen hero would liberate the kingdom.",
+        "The High Oracle promised that the chosen hero would liberated the kingdom.",
+        "The High Oracle promised that the chosen hero will be liberated the kingdom."
       ],
       correct: 0,
-      explanation: "Kastil tidak bisa 'wandering' (berkelana). Subjek yang melakukan aksi ('the heroes') harus diletakkan tepat setelah participle phrase pembuka.",
-      category: "Dangling Modifiers",
+      explanation: "Bila klausa utama bernilai lampau ('promised'), maka 'will' berubah menjadi Past Future 'would' + Verb 1 murni ('would liberate').",
+      category: "13. Simple Past Future",
       regionIndex: 3
     },
     {
-      id: 'r4_q2',
-      monster_text: "The army of dark wraiths are marching towards the castle gates.",
-      question: "Perbaiki kesalahan Subject-Verb Agreement pada Collective Noun:",
+      id: 'sec4_q2',
+      monster_text: "If I possessed the legendary sword, I will slay the chimera easily.",
+      question: "Perbaiki klausa akibat Second Conditional (Past Simple -> Past Future 'would'):",
       options: [
-        "The army of dark wraiths were marching towards the castle gates.",
-        "The army of dark wraiths is marching towards the castle gates.",
-        "The armies of dark wraith is marching towards the castle gates."
+        "If I possessed the legendary sword, I would slay the chimera easily.",
+        "If I possessed the legendary sword, I would have slayed the chimera easily.",
+        "If I possessed the legendary sword, I will be slaying the chimera easily."
       ],
-      correct: 1,
-      explanation: "Subjek utama adalah 'The army' (singular collective noun), bukan 'dark wraiths'. To be yang tepat adalah 'is', bukan 'are'.",
-      category: "Collective Nouns",
+      correct: 0,
+      explanation: "Second Conditional (pengandaian masa kini yang mustahil/berlawanan): If + Simple Past (possessed), S + would + Verb 1 ('would slay').",
+      category: "13. Simple Past Future (Conditional 2)",
       regionIndex: 3
     },
     {
-      id: 'r4_q3',
-      monster_text: "Between you and I, this dungeon hides a terrifying beast.",
-      question: "Perbaiki kesalahan penggunaan Pronoun Case setelah preposisi:",
+      id: 'sec4_q3',
+      monster_text: "The knight knew that at noon yesterday he will be battling the chimera's three heads.",
+      question: "Perbaiki Past Future Continuous Tense (would be + V-ing) dari sudut pandang masa lalu:",
       options: [
-        "Between you and me, this dungeon hides a terrifying beast.",
-        "Between you and myself, this dungeon hides a terrifying beast.",
-        "Between he and I, this dungeon hides a terrifying beast."
+        "The knight knew that at noon yesterday he would be battling the chimera's three heads.",
+        "The knight knew that at noon yesterday he would battled the chimera's three heads.",
+        "The knight knew that at noon yesterday he will be battling the chimera's three heads."
       ],
       correct: 0,
-      explanation: "'Between' adalah preposisi (preposition). Kata ganti setelah preposisi wajib berupa Object Pronoun ('me', bukan 'I').",
-      category: "Pronoun Cases",
+      explanation: "Rumus Past Future Continuous: S + would + be + V-ing ('would be battling'). Menyatakan aksi yang direncanakan sedang berlangsung di masa lampau.",
+      category: "14. Past Future Continuous",
       regionIndex: 3
     },
     {
-      id: 'r4_q4',
-      monster_text: "Neither the Paladin nor the Clerics was ready for the ambush.",
-      question: "Pilih kesesuaian kata kerja korelasi 'Neither... nor...':",
+      id: 'sec4_q4',
+      monster_text: "If the scouts had warned us earlier, our fortress will have defended against the ambush.",
+      question: "Perbaiki Past Future Perfect Tense (Third Conditional):",
       options: [
-        "Neither the Paladin nor the Clerics were ready for the ambush.",
-        "Neither the Paladin or the Clerics were ready for the ambush.",
-        "Neither the Paladin nor the Clerics is ready for the ambush."
+        "If the scouts had warned us earlier, our fortress would have defended against the ambush.",
+        "If the scouts had warned us earlier, our fortress would defended against the ambush.",
+        "If the scouts had warned us earlier, our fortress will defend against the ambush."
       ],
       correct: 0,
-      explanation: "Dengan 'Neither... nor...', kata kerja menyesuaikan subjek terdekat. Di sini subjek terdekat adalah 'the Clerics' (jamak), sehingga menggunakan 'were'.",
-      category: "Correlative Conjunctions",
+      explanation: "Third Conditional (penyesalan masa lampau): If + Past Perfect (had warned), S + would have + V3 ('would have defended').",
+      category: "15. Past Future Perfect",
       regionIndex: 3
     },
     {
-      id: 'r4_q5',
-      monster_text: "Having devoured the raw meat, the dungeon quieted down around the chimera.",
-      question: "Perbaiki Dangling Participle agar subjek yang makan jelas:",
+      id: 'sec4_q5',
+      monster_text: "By dusk yesterday, the paladins would have been fight for eight hours if reinforcements hadn't arrived.",
+      question: "Perbaiki Past Future Perfect Continuous Tense (would have been + V-ing):",
       options: [
-        "Having devoured the raw meat, the chimera rested as the dungeon quieted down.",
-        "Having devoured the raw meat, the dungeon was quieted by the chimera.",
-        "The dungeon quieted down around the chimera having devoured the raw meat."
+        "By dusk yesterday, the paladins would have been fighting for eight hours if reinforcements hadn't arrived.",
+        "By dusk yesterday, the paladins would have fought for eight hours if reinforcements hadn't arrived.",
+        "By dusk yesterday, the paladins will have been fighting for eight hours if reinforcements hadn't arrived."
       ],
       correct: 0,
-      explanation: "Yang melahap daging adalah chimera, bukan dungeon. Chimera harus menjadi subjek langsung setelah frase partisipial pembuka.",
-      category: "Dangling Participles",
+      explanation: "Rumus Past Future Perfect Continuous: S + would + have + been + V-ing ('would have been fighting'). Menyatakan durasi hipotesis yang seharusnya telah berlangsung di masa lampau.",
+      category: "16. Past Future Perfect Continuous",
       regionIndex: 3
     },
     {
-      id: 'r4_q6',
-      monster_text: "To unlock the ancient runic chest, the golden key must be inserted.",
-      question: "Perbaiki Dangling Infinitive Phrase agar subjek pelaku terlihat jelas:",
+      id: 'sec4_q6',
+      monster_text: "She told me that by the end of that day, she would had been meditating for ten hours.",
+      question: "Perbaiki bentuk auxiliary Past Future Perfect Continuous (would have been):",
       options: [
-        "To unlock the ancient runic chest, the rogue must insert the golden key.",
-        "To unlock the ancient runic chest, inserting the golden key is required.",
-        "The ancient runic chest must be unlocked by the golden key being inserted."
+        "She told me that by the end of that day, she would have been meditating for ten hours.",
+        "She told me that by the end of that day, she would has been meditating for ten hours.",
+        "She told me that by the end of that day, she will have been meditating for ten hours."
       ],
       correct: 0,
-      explanation: "Kunci tidak bisa membuka peti dengan sendirinya. Pelaku aksi ('the rogue') harus ditempatkan sebagai subjek klausa utama.",
-      category: "Dangling Infinitives",
+      explanation: "Setelah modal 'would', selalu gunakan 'have' murni, bukan 'had' atau 'has': 'would have been meditating'.",
+      category: "16. Past Future Perfect Continuous",
       regionIndex: 3
     }
   ],
 
-  // Region 5: The Great Chaos Overlord (Focus: Passive Voice, Conditionals Type 3, Subjunctive, Inversion)
+  // =========================================================================
+  // SEKTOR 5 (WILAYAH 5 - FINAL BOSS): CONJUNCTIONS (KATA HUBUNG)
+  // Coordinating (FANBOYS) | Subordinating | Correlative | Conjunctive Adverbs
+  // =========================================================================
   4: [
     {
-      id: 'r5_q1',
-      monster_text: "The ancient spell was spoke by the elder runesmith.",
-      question: "Perbaiki bentuk Passive Voice kata kerja tak beraturan:",
+      id: 'sec5_q1',
+      monster_text: "The Conjunction Overlord unleashed a devastating shadow wave, so the brave heroes refused to retreat.",
+      question: "Pilih Coordinating Conjunction (FANBOYS) yang tepat untuk menyatakan kontras/pertentangan yang mengejutkan:",
       options: [
-        "The ancient spell was spoken by the elder runesmith.",
-        "The ancient spell was speaked by the elder runesmith.",
-        "The ancient spell were spoken by the elder runesmith."
+        "The Conjunction Overlord unleashed a devastating shadow wave, yet the brave heroes refused to retreat.",
+        "The Conjunction Overlord unleashed a devastating shadow wave, for the brave heroes refused to retreat.",
+        "The Conjunction Overlord unleashed a devastating shadow wave, so the brave heroes refused to retreat."
       ],
       correct: 0,
-      explanation: "Rumus Passive Voice: To Be + Past Participle (V3). Bentuk V3 dari 'speak' adalah 'spoken' (speak - spoke - spoken).",
-      category: "Passive Voice",
+      explanation: "Gunakan 'yet' untuk menghubungkan dua klausa independen yang kontras dan mengejutkan (meski diserang gelombang bayangan, namun para pahlawan menolak mundur). 'So' keliru karena menyatakan sebab-akibat.",
+      category: "Coordinating Conjunction (FANBOYS: Yet)",
       regionIndex: 4
     },
     {
-      id: 'r5_q2',
-      monster_text: "If the wizard studied harder, he would have defeated the dragon yesterday.",
-      question: "Perbaiki kesalahan Third Conditional untuk penyesalan masa lalu:",
+      id: 'sec5_q2',
+      monster_text: "The demon could not pierce our enchanted shield, and neither he could diminish our celestial fire.",
+      question: "Perbaiki Coordinating Conjunction negatif 'nor' dengan Inversi Subjek-Auxiliary:",
       options: [
-        "If the wizard had studied harder, he would defeat the dragon yesterday.",
-        "If the wizard had studied harder, he would have defeated the dragon yesterday.",
-        "If the wizard has studied harder, he would have defeated the dragon yesterday."
+        "The demon could not pierce our enchanted shield, nor could he diminish our celestial fire.",
+        "The demon could not pierce our enchanted shield, nor he could diminish our celestial fire.",
+        "The demon could not pierce our enchanted shield, but nor could he diminish our celestial fire."
       ],
-      correct: 1,
-      explanation: "Peristiwa masa lampau yang tidak terwujud ('yesterday') menggunakan Third Conditional: If + Past Perfect (had studied), would have + V3 (would have defeated).",
-      category: "Third Conditional",
+      correct: 0,
+      explanation: "Konjungsi koordinatif 'nor' menghubungkan dua pernyataan negatif dan mewajibkan inversi (auxiliary diletakkan sebelum subjek): ', nor could he diminish...'.",
+      category: "Coordinating Conjunction (FANBOYS: Nor)",
       regionIndex: 4
     },
     {
-      id: 'r5_q3',
-      monster_text: "The Archmage demanded that every apprentice is present at dawn.",
-      question: "Perbaiki Subjunctive Mood dalam klausa tuntutan (demand that...):",
+      id: 'sec5_q3',
+      monster_text: "Despite the demon was protected by dark armor, the spell pierced its wicked core.",
+      question: "Perbaiki Subordinating Conjunction konsesi klausa (klausa lengkap S + V):",
       options: [
-        "The Archmage demanded that every apprentice be present at dawn.",
-        "The Archmage demanded that every apprentice was present at dawn.",
-        "The Archmage demanded that every apprentice will be present at dawn."
+        "Although the demon was protected by dark armor, the spell pierced its wicked core.",
+        "Despite of the demon was protected by dark armor, the spell pierced its wicked core.",
+        "In spite the demon was protected by dark armor, the spell pierced its wicked core."
       ],
       correct: 0,
-      explanation: "Kata kerja yang menyatakan tuntutan/perintah (demand, insist) diikuti klausa 'that' membutuhkan Subjunctive Mood dengan Bare Infinitive ('be', bukan 'is' atau 'was').",
-      category: "Subjunctive Mood",
+      explanation: "'Despite' adalah preposisi yang hanya diikuti noun/noun phrase. Bila diikuti klausa lengkap (S + V 'the demon was protected'), gunakan Subordinating Conjunction 'Although' atau 'Even though'.",
+      category: "Subordinating Conjunction (Although vs Despite)",
       regionIndex: 4
     },
     {
-      id: 'r5_q4',
-      monster_text: "Not only the demon king destroyed the crystal, but he also enslaved the realm.",
-      question: "Perbaiki Inversi Negatif pembuka (Negative Inversion):",
+      id: 'sec5_q4',
+      monster_text: "The kingdom will never find peace if the dark core is not completely destroyed.",
+      question: "Ganti klausa 'if... not' dengan Subordinating Conjunction 'unless' secara gramatikal:",
       options: [
-        "Not only did the demon king destroy the crystal, but he also enslaved the realm.",
-        "Not only the demon king had destroyed the crystal, but also enslaved the realm.",
-        "Not only was the demon king destroyed the crystal, but he also enslaved the realm."
+        "The kingdom will never find peace unless the dark core is completely destroyed.",
+        "The kingdom will never find peace unless the dark core is not completely destroyed.",
+        "The kingdom will never find peace unless if the dark core is completely destroyed."
       ],
       correct: 0,
-      explanation: "Ketika kalimat diawali frase negatif 'Not only', susunan kata dibalik dengan meletakkan auxiliary sebelum subjek ('did the demon king destroy').",
-      category: "Negative Inversion",
+      explanation: "'Unless' bermakna 'if... not' (kecuali jika). Maka klausa di dalamnya harus berbentuk afirmatif/positif ('unless the dark core is completely destroyed').",
+      category: "Subordinating Conjunction (Unless)",
       regionIndex: 4
     },
     {
-      id: 'r5_q5',
-      monster_text: "Scarcely the demon raised his staff when thunder struck the alter.",
-      question: "Perbaiki Inversi 'Scarcely... when...' untuk urutan kejadian dramatis:",
+      id: 'sec5_q5',
+      monster_text: "The demon's spell corrupted neither the valiant knights or the elven archers.",
+      question: "Perbaiki pasangan Correlative Conjunction yang tepat ('Neither... nor'):",
       options: [
-        "Scarcely had the demon raised his staff when thunder struck the altar.",
-        "Scarcely the demon had raised his staff when thunder struck the altar.",
-        "Scarcely did the demon raised his staff when thunder struck the altar."
+        "The demon's spell corrupted neither the valiant knights nor the elven archers.",
+        "The demon's spell corrupted neither the valiant knights and the elven archers.",
+        "The demon's spell corrupted either the valiant knights nor the elven archers."
       ],
       correct: 0,
-      explanation: "'Scarcely' di awal kalimat mewajibkan inversi Past Perfect: Scarcely + had + Subjek + V3 + when...",
-      category: "Time Inversion",
+      explanation: "Pasangan Correlative Conjunction yang baku adalah 'Neither... nor...' (bukan 'or') dan 'Either... or...'.",
+      category: "Correlative Conjunction (Neither... nor)",
       regionIndex: 4
     },
     {
-      id: 'r5_q6',
-      monster_text: "If I was the master of time, I would restore Grammaria with a single word.",
-      question: "Perbaiki Subjunctive 'were' dalam pengandaian hipotetis (Second Conditional):",
+      id: 'sec5_q6',
+      monster_text: "The hero sought not only to defeat the overlord, but also restoring the realm of GramMaru.",
+      question: "Perbaiki struktur paralel (Parallelism) pada Correlative Conjunction 'not only... but also':",
       options: [
-        "If I were the master of time, I would restore Grammaria with a single word.",
-        "If I am the master of time, I would restore Grammaria with a single word.",
-        "If I had been the master of time, I will restore Grammaria with a single word."
+        "The hero sought not only to defeat the overlord, but also to restore the realm of GramMaru.",
+        "The hero sought not only defeating the overlord, but also to restore the realm of GramMaru.",
+        "The hero sought not only to defeat the overlord, but restoring also the realm of GramMaru."
       ],
       correct: 0,
-      explanation: "Dalam pengandaian bertolak belakang dengan fakta saat ini (Second Conditional), gunakan 'were' untuk semua subjek orang (termasuk 'I' dan 'he/she/it').",
-      category: "Hypothetical Subjunctive",
+      explanation: "Unsur bahasa setelah 'not only' dan 'but also' harus sejajar (paralel). Karena 'not only' diikuti infinitive 'to defeat', maka 'but also' wajib diikuti infinitive 'to restore'.",
+      category: "Correlative Conjunction (Parallelism)",
+      regionIndex: 4
+    },
+    {
+      id: 'sec5_q7',
+      monster_text: "The demon's barrier collapsed, however we lacked the magical energy to deliver the finishing blow.",
+      question: "Perbaiki tanda baca pada Conjunctive Adverb 'however' yang menghubungkan dua klausa independen:",
+      options: [
+        "The demon's barrier collapsed; however, we lacked the magical energy to deliver the finishing blow.",
+        "The demon's barrier collapsed, however, we lacked the magical energy to deliver the finishing blow.",
+        "The demon's barrier collapsed; however we lacked the magical energy to deliver the finishing blow."
+      ],
+      correct: 0,
+      explanation: "Conjunctive adverb seperti 'however' yang menghubungkan dua klausa independen wajib diawali titik koma (;) dan diakhiri koma (,). Menggunakan koma saja menghasilkan Comma Splice.",
+      category: "Conjunctive Adverbs (Punctuation)",
+      regionIndex: 4
+    },
+    {
+      id: 'sec5_q8',
+      monster_text: "We struck the beast decisively, because of its defensive nexus was momentarily offline.",
+      question: "Pilih Subordinating Conjunction yang tepat untuk klausa penyebab (Cause and Effect):",
+      options: [
+        "We struck the beast decisively, because its defensive nexus was momentarily offline.",
+        "We struck the beast decisively, because of it was momentarily offline.",
+        "We struck the beast decisively, owing to its defensive nexus was momentarily offline."
+      ],
+      correct: 0,
+      explanation: "'Because of' dan 'owing to' adalah preposisi (hanya diikuti noun/noun phrase). Untuk klausa lengkap dengan subjek dan kata kerja ('its defensive nexus was offline'), gunakan conjunction 'because' atau 'since'.",
+      category: "Subordinating Conjunction (Because vs Because of)",
       regionIndex: 4
     }
   ]
 };
 
-// Flattened database grouped by Tier for Grimoire and backward compatibility
+// Backward compatibility alias for Stage 2 (Wilayah 1-5: 16 Tenses & Conjunctions)
+export const REGION_GRAMMAR_DB = STAGE_2_GRAMMAR_DB;
+
+// Comprehensive multi-stage grammar database (Stage 1: Part of Speech, Stage 2: 16 Tenses, Stage 3: Clauses)
+export const CAMPAIGN_GRAMMAR_DB: Record<number, Record<number, GrammarQuestion[]>> = {
+  1: STAGE_1_GRAMMAR_DB,
+  2: STAGE_2_GRAMMAR_DB,
+  3: STAGE_3_GRAMMAR_DB
+};
+
+// Flattened database grouped by Tier for backward compatibility
 export const GRAMMAR_DB: Record<number, GrammarQuestion[]> = {
   1: [...REGION_GRAMMAR_DB[0], ...REGION_GRAMMAR_DB[1]],
   2: [...REGION_GRAMMAR_DB[2], ...REGION_GRAMMAR_DB[3]],
   3: [...REGION_GRAMMAR_DB[4]]
 };
+

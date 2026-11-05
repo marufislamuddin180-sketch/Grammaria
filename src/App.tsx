@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player, MonsterState, GameStage } from './types/game';
-import { MONSTER_ENCOUNTERS } from './data/monsters';
+import { STAGE_ENCOUNTERS, MONSTER_ENCOUNTERS } from './data/monsters';
+import { CAMPAIGN_STAGES } from './data/campaignStages';
 import { Header } from './components/Header';
 import { CharacterSelect } from './components/CharacterSelect';
 import { BattleScreen } from './components/BattleScreen';
@@ -11,18 +12,22 @@ import { bgmManager } from './utils/bgm';
 
 export const App: React.FC = () => {
   const [stage, setStage] = useState<GameStage>('character-creation');
+  const [currentStageId, setCurrentStageId] = useState<number>(1);
   const [player, setPlayer] = useState<Player | null>(null);
   const [currentEncounterIndex, setCurrentEncounterIndex] = useState<number>(0);
   const [currentMonster, setCurrentMonster] = useState<MonsterState | null>(null);
   const [lastBattleOutcome, setLastBattleOutcome] = useState<{
-    potionDropped: boolean;
+    droppedItemName?: string;
     leveledUp: boolean;
-  }>({ potionDropped: false, leveledUp: false });
+  }>({ leveledUp: false });
+
+  const activeStageInfo = CAMPAIGN_STAGES.find((s) => s.id === currentStageId) || CAMPAIGN_STAGES[0];
+  const activeEncounters = STAGE_ENCOUNTERS[currentStageId] || STAGE_ENCOUNTERS[2] || MONSTER_ENCOUNTERS;
 
   // Synchronize BGM tracks with the active stage and encounter
   useEffect(() => {
     if (stage === 'battle') {
-      const isBoss = currentEncounterIndex === MONSTER_ENCOUNTERS.length - 1;
+      const isBoss = currentEncounterIndex === activeEncounters.length - 1;
       bgmManager.playTrack(isBoss ? 'boss' : 'battle');
     } else if (stage === 'battle-victory' || stage === 'game-cleared') {
       bgmManager.playTrack('victory');
@@ -31,13 +36,15 @@ export const App: React.FC = () => {
     } else if (stage === 'game-over') {
       bgmManager.stop();
     }
-  }, [stage, currentEncounterIndex]);
+  }, [stage, currentEncounterIndex, activeEncounters.length]);
 
-  // Start Quest from character selection
-  const handleStartQuest = (newPlayer: Player) => {
+  // Start Quest from character selection with chosen stage
+  const handleStartQuest = (newPlayer: Player, stageId: number) => {
+    setCurrentStageId(stageId);
     setPlayer(newPlayer);
     setCurrentEncounterIndex(0);
-    const firstMonster = MONSTER_ENCOUNTERS[0];
+    const encounters = STAGE_ENCOUNTERS[stageId] || STAGE_ENCOUNTERS[1];
+    const firstMonster = encounters[0];
     setCurrentMonster({
       ...firstMonster,
       currentHp: firstMonster.hp
@@ -46,13 +53,10 @@ export const App: React.FC = () => {
   };
 
   // Called when a monster is defeated
-  const handleMonsterDefeated = (updatedPlayer: Player, droppedPotion: boolean) => {
+  const handleMonsterDefeated = (updatedPlayer: Player, droppedItemName?: string) => {
     let p = { ...updatedPlayer };
-    if (droppedPotion) {
-      p.potions += 1;
-    }
 
-    // EXP Gain & Level Up logic (matching grammaria.py)
+    // EXP Gain & Level Up logic
     const expGained = 35;
     let newExp = p.exp + expGained;
     let leveledUp = false;
@@ -82,12 +86,12 @@ export const App: React.FC = () => {
 
     setPlayer(p);
     setLastBattleOutcome({
-      potionDropped: droppedPotion,
+      droppedItemName,
       leveledUp
     });
 
     // Check if final boss was defeated
-    if (currentEncounterIndex >= MONSTER_ENCOUNTERS.length - 1) {
+    if (currentEncounterIndex >= activeEncounters.length - 1) {
       setStage('game-cleared');
     } else {
       setStage('battle-victory');
@@ -97,9 +101,9 @@ export const App: React.FC = () => {
   // Proceed to next encounter
   const handleProceedNextEncounter = () => {
     const nextIndex = currentEncounterIndex + 1;
-    if (nextIndex < MONSTER_ENCOUNTERS.length) {
+    if (nextIndex < activeEncounters.length) {
       setCurrentEncounterIndex(nextIndex);
-      const nextMon = MONSTER_ENCOUNTERS[nextIndex];
+      const nextMon = activeEncounters[nextIndex];
       setCurrentMonster({
         ...nextMon,
         currentHp: nextMon.hp
@@ -108,6 +112,27 @@ export const App: React.FC = () => {
     } else {
       setStage('game-cleared');
     }
+  };
+
+  // Advance to next Campaign Stage (e.g., Stage 1 -> Stage 2 -> Stage 3)
+  const handleNextCampaignStage = (nextStageId: number) => {
+    setCurrentStageId(nextStageId);
+    setCurrentEncounterIndex(0);
+    if (player) {
+      const restoredPlayer: Player = {
+        ...player,
+        hp: player.maxHp,
+        potions: Math.max(player.potions, 2)
+      };
+      setPlayer(restoredPlayer);
+    }
+    const encounters = STAGE_ENCOUNTERS[nextStageId] || STAGE_ENCOUNTERS[2];
+    const firstMonster = encounters[0];
+    setCurrentMonster({
+      ...firstMonster,
+      currentHp: firstMonster.hp
+    });
+    setStage('battle');
   };
 
   // Player died
@@ -122,10 +147,11 @@ export const App: React.FC = () => {
     const restoredPlayer: Player = {
       ...player,
       hp: player.maxHp,
-      potions: Math.max(player.potions, 1) // Give at least 1 potion for retry
+      potions: Math.max(player.potions, 1), // Give at least 1 potion for retry
+      skillCooldown: 0
     };
     setPlayer(restoredPlayer);
-    const mon = MONSTER_ENCOUNTERS[currentEncounterIndex];
+    const mon = activeEncounters[currentEncounterIndex];
     setCurrentMonster({
       ...mon,
       currentHp: mon.hp
@@ -133,7 +159,7 @@ export const App: React.FC = () => {
     setStage('battle');
   };
 
-  // Start fresh
+  // Start fresh or select another stage
   const handleStartFresh = () => {
     setPlayer(null);
     setCurrentMonster(null);
@@ -149,14 +175,20 @@ export const App: React.FC = () => {
       {/* Main App Navigation */}
       <Header
         currentStageIndex={currentEncounterIndex}
-        totalStages={MONSTER_ENCOUNTERS.length}
+        totalStages={activeEncounters.length}
         inGame={stage === 'battle' || stage === 'battle-victory'}
+        stageId={currentStageId}
+        stageTitle={activeStageInfo.title}
+        onChangeStage={handleStartFresh}
       />
 
       {/* Screen Views */}
       <main className="flex-1 pb-12">
         {stage === 'character-creation' && (
-          <CharacterSelect onStartQuest={handleStartQuest} />
+          <CharacterSelect 
+            onStartQuest={handleStartQuest}
+            defaultStageId={currentStageId}
+          />
         )}
 
         {stage === 'battle' && player && currentMonster && (
@@ -164,7 +196,9 @@ export const App: React.FC = () => {
             player={player}
             monster={currentMonster}
             encounterIndex={currentEncounterIndex}
-            totalEncounters={MONSTER_ENCOUNTERS.length}
+            totalEncounters={activeEncounters.length}
+            stageId={currentStageId}
+            stageTitle={activeStageInfo.title}
             onMonsterDefeated={handleMonsterDefeated}
             onPlayerDefeated={handlePlayerDefeated}
           />
@@ -173,10 +207,12 @@ export const App: React.FC = () => {
         {stage === 'battle-victory' && player && currentMonster && (
           <EncounterVictoryScreen
             player={player}
-            defeatedMonster={MONSTER_ENCOUNTERS[currentEncounterIndex]}
+            defeatedMonster={activeEncounters[currentEncounterIndex]}
             encounterIndex={currentEncounterIndex}
-            totalEncounters={MONSTER_ENCOUNTERS.length}
-            potionDropped={lastBattleOutcome.potionDropped}
+            totalEncounters={activeEncounters.length}
+            stageId={currentStageId}
+            stageTitle={activeStageInfo.title}
+            droppedItemName={lastBattleOutcome.droppedItemName}
             leveledUp={lastBattleOutcome.leveledUp}
             onProceedNext={handleProceedNextEncounter}
           />
@@ -185,7 +221,10 @@ export const App: React.FC = () => {
         {stage === 'game-cleared' && player && (
           <GameClearedScreen
             player={player}
+            stageId={currentStageId}
+            stageTitle={activeStageInfo.title}
             onRestart={handleStartFresh}
+            onNextStage={handleNextCampaignStage}
           />
         )}
 
@@ -201,7 +240,7 @@ export const App: React.FC = () => {
 
       {/* Bottom status bar / Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 px-4 py-2.5 text-center text-[11px] text-slate-500 font-mono">
-        Grammaria: The Quest for Perfect Syntax • Retro Educational English Grammar RPG
+        GramMaru: Multi-Stage Educational English Grammar RPG • Stage 1: Parts of Speech • Stage 2: 16 Tenses (Wilayah 1-5) • Stage 3: Clauses Mastery
       </footer>
     </div>
   );

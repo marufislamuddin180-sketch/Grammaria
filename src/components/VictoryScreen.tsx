@@ -9,14 +9,20 @@ interface EncounterVictoryProps {
   defeatedMonster: MonsterTemplate;
   encounterIndex: number;
   totalEncounters: number;
-  potionDropped: boolean;
+  stageId?: number;
+  stageTitle?: string;
+  droppedItemName?: string;
+  potionDropped?: boolean;
   leveledUp: boolean;
   onProceedNext: () => void;
 }
 
 interface GameClearedProps {
   player: Player;
+  stageId?: number;
+  stageTitle?: string;
   onRestart: () => void;
+  onNextStage?: (nextStageId: number) => void;
 }
 
 export const EncounterVictoryScreen: React.FC<EncounterVictoryProps> = ({
@@ -24,25 +30,78 @@ export const EncounterVictoryScreen: React.FC<EncounterVictoryProps> = ({
   defeatedMonster,
   encounterIndex,
   totalEncounters,
+  stageId = 2,
+  stageTitle = "Stage 2: 16 Tenses",
+  droppedItemName,
   potionDropped,
   leveledUp,
   onProceedNext,
 }) => {
+  useEffect(() => {
+    soundManager.playSectorVictory(encounterIndex);
+    const sectorConfettiColors: string[][] = [
+      ['#10b981', '#34d399', '#f59e0b', '#ffffff'], // Sector 1
+      ['#f59e0b', '#d97706', '#ef4444', '#ffffff'], // Sector 2
+      ['#06b6d4', '#3b82f6', '#8b5cf6', '#ffffff'], // Sector 3
+      ['#a855f7', '#ec4899', '#fbbf24', '#ffffff'], // Sector 4
+      ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#ec4899', '#ffffff'] // Boss Sector 5
+    ];
+
+    try {
+      confetti({
+        particleCount: 75,
+        spread: 70,
+        origin: { y: 0.55 },
+        colors: sectorConfettiColors[encounterIndex] || ['#f59e0b', '#10b981', '#ffffff']
+      });
+    } catch {
+      // Safe fallback
+    }
+  }, [encounterIndex]);
+
+  const sectorIcons = ['🌿', '🏰', '⏳', '🔮', '👑'];
+
+  const getSuccessMessage = () => {
+    if (stageId === 1) {
+      if (encounterIndex === 0) return "✨ Keberhasilan: Kamu telah menguasai Nouns & Pronouns!";
+      if (encounterIndex === 1) return "✨ Keberhasilan: Kamu telah menguasai Verbs & Modals!";
+      if (encounterIndex === 2) return "✨ Keberhasilan: Kamu telah menguasai Adjectives & Adverbs!";
+      if (encounterIndex === 3) return "✨ Keberhasilan: Kamu telah menguasai Prepositions & Articles!";
+      return "✨ Kemenangan Akbar: Seluruh 8 Parts of Speech telah kamu kuasai!";
+    }
+    if (stageId === 3) {
+      if (encounterIndex === 0) return "✨ Keberhasilan: Kamu telah menguasai Noun Clauses & Embedded Questions!";
+      if (encounterIndex === 1) return "✨ Keberhasilan: Kamu telah menguasai Relative & Adjective Clauses!";
+      if (encounterIndex === 2) return "✨ Keberhasilan: Kamu telah menguasai Adverbial Clauses of Time & Conditionals!";
+      if (encounterIndex === 3) return "✨ Keberhasilan: Kamu telah menguasai Cause, Purpose & Concession Clauses!";
+      return "✨ Kemenangan Akbar: Seluruh Klausa Kompleks, Reduksi & Inversi telah kamu kuasai!";
+    }
+    // Default Stage 2 (16 Tenses)
+    if (encounterIndex === 0) return "✨ Keberhasilan: Kamu telah menguasai 4 Present Tenses!";
+    if (encounterIndex === 1) return "✨ Keberhasilan: Kamu telah menguasai 4 Past Tenses!";
+    if (encounterIndex === 2) return "✨ Keberhasilan: Kamu telah menguasai 4 Future Tenses!";
+    if (encounterIndex === 3) return "✨ Keberhasilan: Lengkap! Ke-16 Tenses bahasa Inggris telah kamu kuasai!";
+    return "✨ Kemenangan Akbar: Seluruh Kata Hubung (Conjunctions) telah dipulihkan!";
+  };
+
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4">
-      <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-6 sm:p-8 text-center shadow-2xl space-y-6">
-        <div className="inline-flex p-4 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-3xl mb-2">
-          🏆
+    <div className="max-w-2xl mx-auto py-10 px-4 animate-victory-banner">
+      <div className="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 sm:p-8 text-center shadow-2xl space-y-6 animate-gold-pulse">
+        <div className="inline-flex p-4 rounded-full bg-amber-500/15 border-2 border-amber-400 text-amber-300 text-4xl mb-2 animate-bounce">
+          {sectorIcons[encounterIndex] || '🏆'}
         </div>
 
         <div>
           <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold block mb-1">
-            Wilayah {encounterIndex + 1} Berhasil Disucikan!
+            ✦ {stageTitle.toUpperCase()} • WILAYAH {encounterIndex + 1} DISUCIKAN! ✦
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-title">
             Kemenangan Melawan {defeatedMonster.name}!
           </h2>
-          <p className="text-xs text-slate-400 font-mono mt-2">
+          <p className="text-xs text-amber-300 font-mono mt-2 font-semibold">
+            {getSuccessMessage()}
+          </p>
+          <p className="text-xs text-slate-400 font-mono mt-1">
             Kekacauan sintaksis pada wilayah ini telah dinetralkan.
           </p>
         </div>
@@ -58,12 +117,12 @@ export const EncounterVictoryScreen: React.FC<EncounterVictoryProps> = ({
             <span className="font-bold text-amber-400">+35 EXP</span>
           </div>
 
-          {potionDropped && (
-            <div className="flex items-center justify-between text-sm bg-emerald-950/30 border border-emerald-500/30 p-2.5 rounded-lg text-emerald-300">
+          {(droppedItemName || potionDropped) && (
+            <div className="flex items-center justify-between text-sm bg-amber-950/40 border border-amber-500/40 p-2.5 rounded-lg text-amber-300">
               <span className="flex items-center gap-2">
-                <FlaskConical className="w-4 h-4 text-emerald-400" /> Drop Monster:
+                <FlaskConical className="w-4 h-4 text-amber-400" /> Drop Monster:
               </span>
-              <span className="font-bold">+1x Elixir of Eloquence!</span>
+              <span className="font-bold text-amber-200">+{droppedItemName || "1x Elixir of Eloquence"}!</span>
             </div>
           )}
 
@@ -101,10 +160,15 @@ export const EncounterVictoryScreen: React.FC<EncounterVictoryProps> = ({
   );
 };
 
-export const GameClearedScreen: React.FC<GameClearedProps> = ({ player, onRestart }) => {
+export const GameClearedScreen: React.FC<GameClearedProps> = ({ 
+  player, 
+  stageId = 2,
+  stageTitle = "Stage 2: 16 Tenses & Conjunctions",
+  onRestart,
+  onNextStage
+}) => {
   useEffect(() => {
     soundManager.playVictory();
-    // Confetti burst
     try {
       confetti({
         particleCount: 100,
@@ -134,6 +198,19 @@ export const GameClearedScreen: React.FC<GameClearedProps> = ({ player, onRestar
     ? Math.round((player.correctAnswers / player.questionsAnswered) * 100) 
     : 100;
 
+  const nextStageId = stageId < 3 ? stageId + 1 : null;
+  const nextStageName = stageId === 1 
+    ? "Stage 2: 16 Tenses (Wilayah 1-5)" 
+    : stageId === 2 
+    ? "Stage 3: Clauses Mastery" 
+    : null;
+
+  const getBestowedTitle = () => {
+    if (stageId === 1) return "Grand Master of Parts of Speech";
+    if (stageId === 3) return "Arch-Grandmaster of Complex Clauses";
+    return "Grand Master of 16 Tenses & Conjunctions";
+  };
+
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
       <div className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 border-amber-400 rounded-2xl p-6 sm:p-10 text-center shadow-2xl space-y-8 glow-gold">
@@ -143,13 +220,15 @@ export const GameClearedScreen: React.FC<GameClearedProps> = ({ player, onRestar
 
         <div>
           <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold block mb-2">
-            🏆 SELURUH WILAYAH GRAMMARIA TERSELAMATKAN! 🏆
+            🏆 {stageTitle.toUpperCase()} BERHASIL DISELESAIKAN! 🏆
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 font-title tracking-wider">
             SELAMAT, {player.name.toUpperCase()}!
           </h2>
           <p className="text-sm font-mono text-slate-300 mt-3 max-w-lg mx-auto leading-relaxed">
-            Hukum tata bahasa telah dipulihkan di seluruh penjuru negeri. Setiap kalimat kini berdiri tegak dengan makna yang sempurna!
+            {stageId === 1 && "Kamu telah menguasai seluruh 8 kelas kata bahasa Inggris! Fondasi sintaksismu kini kokoh tak tertandingi."}
+            {stageId === 2 && "Ke-16 Tenses dan seluruh aturan konjungsi telah dipulihkan! Wilayah 1-5 kini aman dan damai."}
+            {stageId === 3 && "Puncak klausa kompleks, relative clauses, dan inversi telah kamu kuasai! Kamu adalah ahli sintaksis tertinggi!"}
           </p>
         </div>
 
@@ -176,19 +255,32 @@ export const GameClearedScreen: React.FC<GameClearedProps> = ({ player, onRestar
         {/* Title bestowed */}
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center gap-3 text-amber-300 font-mono text-sm">
           <Award className="w-5 h-5 text-amber-400 shrink-0" />
-          <span>Gelar Tertinggi: <strong>Grand Master of Syntax & Diction</strong></span>
+          <span>Gelar Tertinggi: <strong>{getBestowedTitle()}</strong></span>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {nextStageId && onNextStage && (
+            <button
+              onClick={() => {
+                soundManager.playSlash();
+                onNextStage(nextStageId);
+              }}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-bold font-title tracking-wider uppercase text-sm transition-all cursor-pointer shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span>Lanjut ke {nextStageName}</span>
+            </button>
+          )}
+
           <button
             onClick={() => {
               soundManager.playBlip();
               onRestart();
             }}
-            className="px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold font-title tracking-wider uppercase text-sm transition-all cursor-pointer shadow-lg shadow-amber-900/40 flex items-center justify-center gap-2 mx-auto"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold font-mono tracking-wider text-xs transition-all cursor-pointer flex items-center justify-center gap-2"
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>Mulai Petualangan Baru</span>
+            <RotateCcw className="w-4 h-4 text-amber-400" />
+            <span>Pilih Stage Lain / Ulangi</span>
           </button>
         </div>
       </div>
