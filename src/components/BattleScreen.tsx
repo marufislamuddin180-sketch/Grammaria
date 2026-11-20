@@ -14,6 +14,7 @@ import {
 import { Player, MonsterState, GrammarQuestion, BattleLogEntry } from '../types/game';
 import { REGION_GRAMMAR_DB, CAMPAIGN_GRAMMAR_DB } from '../data/grammarDb';
 import { CLASS_ACTIVE_SKILLS } from '../data/itemData';
+import { STAGE_BACKDROPS, getDefaultBackdropIndex } from '../data/stageBackdrops';
 import { soundManager } from '../utils/audio';
 import { BattleLog } from './BattleLog';
 import { GrammarCodexModal } from './GrammarCodexModal';
@@ -112,6 +113,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [floatingDamage, setFloatingDamage] = useState<{ target: 'monster' | 'player'; amount: number } | null>(null);
   const [isCodexOpen, setIsCodexOpen] = useState<boolean>(false);
   const [isSectorDefeated, setIsSectorDefeated] = useState<boolean>(false);
+  const [failedBackdropIds, setFailedBackdropIds] = useState<Set<string>>(new Set());
+
+  // Automatically locked backdrop based on stageId and Final Boss sector
+  const activeBackdropIndex = getDefaultBackdropIndex(stageId, encounterIndex, totalEncounters);
+  const activeBackdrop = STAGE_BACKDROPS[activeBackdropIndex] || STAGE_BACKDROPS[0];
 
   // New item & active skill states
   const [eliminatedOptions, setEliminatedOptions] = useState<Set<number>>(new Set());
@@ -198,7 +204,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
     ]);
     pickNewQuestion(freshUsed);
-  }, [encounterIndex]);
+  }, [stageId, encounterIndex, totalEncounters]);
 
   // ==========================================
   // CONSUMABLE ITEM HANDLERS
@@ -273,7 +279,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       itemsUsed: (prev.itemsUsed || 0) + 1,
     }));
 
-    addLog(`📜 Kamu menggunakan 'Scroll of Clarification (50:50)'! Pilihan [${String.fromCharCode(65 + toEliminate)}] berhasil dilenyapkan!`, 'hero');
+    addLog(`📜 Kamu menggunakan 'Scroll of Clarification (50:50)'! Pilihan [${String.fromCharCode(65 + toEliminate)}] berhasil dilenyapkan!`, 'heal', {
+      actor: player.name,
+      actionName: 'Scroll of Clarification (50:50)'
+    });
   };
 
   // 3. Use Punctuation Smoke Bomb (Skip question safely)
@@ -293,7 +302,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       itemsUsed: (prev.itemsUsed || 0) + 1,
     }));
 
-    addLog(`💨 Kamu melempar 'Punctuation Smoke Bomb'! Asap tebal membubung, soal membingungkan diganti tanpa serangan monster!`, 'hero');
+    addLog(`💨 Kamu melempar 'Punctuation Smoke Bomb'! Asap tebal membubung, soal membingungkan diganti tanpa serangan monster!`, 'heal', {
+      actor: player.name,
+      actionName: 'Punctuation Smoke Bomb'
+    });
     pickNewQuestion();
   };
 
@@ -319,7 +331,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       itemsUsed: (prev.itemsUsed || 0) + 1,
     }));
 
-    addLog(`⚡ Kamu mengaktifkan 'Rune of Critical Agreement'! Senjata berpendar tajam: serangan benar berikutnya bertambah +25 DMG!`, 'hero');
+    addLog(`⚡ Kamu mengaktifkan 'Rune of Critical Agreement'! Senjata berpendar tajam: serangan benar berikutnya bertambah +25 DMG!`, 'heal', {
+      actor: player.name,
+      actionName: 'Rune of Critical Agreement'
+    });
   };
 
   // 5. Use Aegis Ward (Barrier Scroll - blocks 1 wrong attack)
@@ -343,7 +358,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       itemsUsed: (prev.itemsUsed || 0) + 1,
     }));
 
-    addLog(`🛡️ Kamu merapalkan 'Aegis Ward'! Perisai sihir melindungimu dari 1 kali serangan monster jika jawabanmu salah!`, 'hero');
+    addLog(`🛡️ Kamu merapalkan 'Aegis Ward'! Perisai sihir melindungimu dari 1 kali serangan monster jika jawabanmu salah!`, 'heal', {
+      actor: player.name,
+      actionName: 'Aegis Ward'
+    });
   };
 
   // ==========================================
@@ -366,7 +384,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       setIsShieldActive(true);
       setIsKnightParryActive(true);
       setPlayer((prev) => ({ ...prev, skillCooldown: activeSkill.cooldownMax }));
-      addLog(`🛡️ [SKILL AKTIF] ${player.name} membangkitkan '${activeSkill.name}' dari ${activeSkill.artifactName}! Kebal terhadap 1x kesalahan & siap memantulkan 20 DMG!`, 'hero');
+      addLog(`🛡️ [SKILL AKTIF] ${player.name} membangkitkan '${activeSkill.name}' dari ${activeSkill.artifactName}! Kebal terhadap 1x kesalahan & siap memantulkan 20 DMG!`, 'hero', {
+        actor: player.name,
+        actionName: activeSkill.name
+      });
     } else if (player.charClass === 'Vocab Mage') {
       if (!currentQuestion) return;
       const wrongIndices = currentQuestion.options
@@ -387,7 +408,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       soundManager.playSkill();
       setPlayer((prev) => ({ ...prev, skillCooldown: activeSkill.cooldownMax }));
-      addLog(`📖 [SKILL AKTIF] ${player.name} merapal '${activeSkill.name}' dari ${activeSkill.artifactName}! Pilihan keliru [${String.fromCharCode(65 + toEliminate)}] langsung lenyap!`, 'hero');
+      addLog(`📖 [SKILL AKTIF] ${player.name} merapal '${activeSkill.name}' dari ${activeSkill.artifactName}! Pilihan keliru [${String.fromCharCode(65 + toEliminate)}] langsung lenyap!`, 'hero', {
+        actor: player.name,
+        actionName: activeSkill.name
+      });
     } else {
       // Punctuation Rogue
       soundManager.playSmoke();
@@ -395,7 +419,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       setIsDamageBuffActive(true);
       setDamageBuffAmount(20);
       setPlayer((prev) => ({ ...prev, skillCooldown: activeSkill.cooldownMax }));
-      addLog(`⏳ [SKILL AKTIF] ${player.name} mengaktifkan '${activeSkill.name}' dari ${activeSkill.artifactName}! Soal diganti ke kalimat baru dan serangan berikutnya bertambah +20 DMG!`, 'hero');
+      addLog(`⏳ [SKILL AKTIF] ${player.name} mengaktifkan '${activeSkill.name}' dari ${activeSkill.artifactName}! Soal diganti ke kalimat baru dan serangan berikutnya bertambah +20 DMG!`, 'hero', {
+        actor: player.name,
+        actionName: activeSkill.name
+      });
       pickNewQuestion();
     }
   };
@@ -464,6 +491,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         target: monster.name,
         damage: totalDmgDealt
       });
+      addLog(`✅ BENAR! Jawaban [${correctLetter}] tepat. 💡 ${currentQuestion.explanation}`, 'explanation');
 
       setAnsweredState({
         answered: true,
@@ -476,7 +504,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         setFloatingDamage(null);
 
         if (nextMonsterHp <= 0) {
-          // Monster defeated & Sector Cleared!
+          // Monster defeated & Sector/Stage Boss Cleared!
+          const isFinalStageBoss = encounterIndex >= totalEncounters - 1;
           soundManager.playSectorVictory(encounterIndex);
           setIsSectorDefeated(true);
           const sectorConfettiColors: string[][] = [
@@ -486,13 +515,34 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             ['#a855f7', '#ec4899', '#fbbf24', '#ffffff'],
             ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#ec4899', '#ffffff']
           ];
+          const burstColors = sectorConfettiColors[encounterIndex] || ['#f59e0b', '#10b981', '#38bdf8', '#fbbf24', '#ffffff'];
           try {
             confetti({
-              particleCount: 90,
-              spread: 75,
+              particleCount: isFinalStageBoss ? 140 : 95,
+              spread: isFinalStageBoss ? 95 : 75,
               origin: { y: 0.55 },
-              colors: sectorConfettiColors[encounterIndex] || ['#f59e0b', '#10b981', '#38bdf8', '#fbbf24', '#ffffff']
+              colors: burstColors
             });
+            setTimeout(() => {
+              try {
+                confetti({
+                  particleCount: isFinalStageBoss ? 70 : 45,
+                  angle: 60,
+                  spread: 60,
+                  origin: { x: 0.05, y: 0.65 },
+                  colors: burstColors
+                });
+                confetti({
+                  particleCount: isFinalStageBoss ? 70 : 45,
+                  angle: 120,
+                  spread: 60,
+                  origin: { x: 0.95, y: 0.65 },
+                  colors: burstColors
+                });
+              } catch {
+                // Safe fallback
+              }
+            }, 280);
           } catch {
             // Safe fallback
           }
@@ -521,7 +571,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
           setTimeout(() => {
             onMonsterDefeated(updatedPlayer, droppedItemText);
-          }, 1600);
+          }, isFinalStageBoss ? 2200 : 1900);
         }
       }, 800);
     } else {
@@ -544,7 +594,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const parriedMonsterHp = Math.max(0, monster.currentHp - parryDmg);
           setMonster((prev) => ({ ...prev, currentHp: parriedMonsterHp }));
           setFloatingDamage({ target: 'monster', amount: parryDmg });
-          addLog(`🛡️ PANTULAN CONCORD! Perisai 'Aegis of Concord' memantulkan ${parryDmg} DMG balik ke ${monster.name}!`, 'hero');
+          addLog(`🛡️ PANTULAN CONCORD! Perisai 'Aegis of Concord' memantulkan ${parryDmg} damage balik ke ${monster.name}!`, 'hero', {
+            actor: player.name,
+            target: monster.name,
+            actionName: 'Aegis of Concord (Parry)',
+            damage: parryDmg,
+            isCritical: true
+          });
         }
 
         addLog(`🛡️ PERISAI MENAHAN SERANGAN! Serangan ${monster.name} sepenuhnya dinetralkan oleh Aegis Ward / Fortress of Concord!`, 'system');
@@ -636,30 +692,73 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const isPlayerTakingDamage = isAttacking === 'monster' && !isShieldActive;
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
-      {/* Sector Header Banner */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs shadow-lg">
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
-            {stageTitle}
-          </span>
-          <span className="text-slate-400">
-            • WILAYAH {encounterIndex + 1} DARI {totalEncounters}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>FOKUS: {currentQuestion?.category || monster.title}</span>
-        </div>
+    <div className="relative min-h-[calc(100vh-4rem)] w-full overflow-hidden">
+      {/* Full-Bleed Retro 16-Bit Stage Backdrop Layer */}
+      <div
+        className={`absolute inset-0 z-0 pointer-events-none select-none overflow-hidden transition-colors duration-700 ${activeBackdrop.fallbackGradient}`}
+        aria-hidden="true"
+      >
+        {STAGE_BACKDROPS.map((backdrop, idx) => {
+          const isActive = idx === activeBackdropIndex;
+          const isFailed = failedBackdropIds.has(backdrop.id);
+          if (isFailed) return null;
+          return (
+            <img
+              key={backdrop.id}
+              src={backdrop.imageUrl}
+              alt={backdrop.name}
+              referrerPolicy="no-referrer"
+              onError={() => {
+                setFailedBackdropIds((prev) => {
+                  const next = new Set(prev);
+                  next.add(backdrop.id);
+                  return next;
+                });
+              }}
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-out ${
+                isActive ? 'opacity-90' : 'opacity-0'
+              }`}
+            />
+          );
+        })}
+
+        {/* Light Edge Vignette preserving crisp center visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-950/15 to-slate-950/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-transparent to-slate-950/35" />
       </div>
 
-      {/* Main Battle Arena Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        
-        {/* Left Column: Monster Visual & Info Card (5 cols) */}
-        <div className={`lg:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-2xl flex flex-col justify-between transition-all duration-300 relative overflow-hidden ${
-          isMonsterTakingDamage ? 'animate-hit-flash animate-shake ring-2 ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.5)]' : ''
-        } ${isSectorDefeated ? 'animate-purify ring-2 ring-emerald-400' : ''}`}>
+      {/* Foreground Combat Arena Content */}
+      <div className="relative z-10 max-w-6xl mx-auto py-6 px-4">
+        {/* Sector Header Banner (Auto-locked Realm Display) */}
+        <div className="bg-slate-950/50 backdrop-blur-md border border-slate-700/60 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs shadow-lg">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 whitespace-nowrap shrink-0">
+              {stageTitle}
+            </span>
+            <span className="text-slate-200 whitespace-nowrap">
+              Wilayah {encounterIndex + 1} / {totalEncounters}
+            </span>
+            <span className="text-slate-500 hidden sm:inline">·</span>
+            <span className="text-slate-300 truncate max-w-xs sm:max-w-sm">
+              Fokus: {currentQuestion?.category || monster.title}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-300 ml-auto" title={activeBackdrop.subtitle}>
+            <span className="text-slate-400">Arena:</span>
+            <span className={`font-semibold whitespace-nowrap ${activeBackdrop.accentTextClass}`}>
+              {activeBackdrop.name}
+            </span>
+          </div>
+        </div>
+
+        {/* Main Battle Arena Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+          
+          {/* Left Column: Monster Visual & Info Card (5 cols) */}
+          <div className={`lg:col-span-5 bg-slate-950/48 backdrop-blur-md border border-slate-700/60 rounded-xl p-5 shadow-2xl flex flex-col justify-between transition-all duration-300 relative overflow-hidden ${
+            isMonsterTakingDamage ? 'animate-hit-flash animate-shake ring-2 ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.5)]' : ''
+          } ${isSectorDefeated ? 'animate-purify ring-2 ring-emerald-400' : ''}`}>
           
           {/* Confetti & Particle Sparks on Damage */}
           {isMonsterTakingDamage && (
@@ -696,11 +795,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               {monster.title}
             </p>
 
-            {/* Monster Avatar Graphic */}
-            <div className={`relative h-44 rounded-xl bg-gradient-to-b from-slate-950 to-slate-900 border border-slate-800/80 flex items-center justify-center overflow-hidden my-2 shadow-inner ${
+            {/* Monster Avatar Graphic (Transparent Stage Frame) */}
+            <div className={`relative h-44 rounded-xl bg-slate-950/20 border border-slate-700/50 flex items-center justify-center overflow-hidden my-2 shadow-inner ${
               isAttacking === 'monster' ? 'animate-monster-lunge ring-2 ring-rose-500/80 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : ''
             } ${isMonsterTakingDamage ? 'animate-shake' : ''}`}>
-              <div className="text-6xl sm:text-7xl select-none filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] transition-transform duration-200">
+              <div className={`text-6xl sm:text-7xl select-none filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] transition-transform duration-200 ${
+                isSectorDefeated ? 'animate-purify-defeat' : ''
+              }`}>
                 {monster.avatarType === 'goblin' && '👺'}
                 {monster.avatarType === 'troll' && '👹'}
                 {monster.avatarType === 'dragon' && '🐲'}
@@ -737,11 +838,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           </div>
 
           {/* Monster Dialogue / Speech bubble with corrupted text */}
-          <div className="mt-5 p-3.5 rounded-lg bg-black/60 border border-rose-900/40 relative">
+          <div className="mt-5 p-3.5 rounded-lg bg-slate-950/60 border border-rose-500/35 relative">
             <div className="text-[11px] font-mono font-bold text-rose-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5" /> Distorsi Bahasa:
             </div>
-            <p className="font-mono text-xs sm:text-sm text-rose-200 italic font-semibold leading-relaxed">
+            <p className="font-mono text-xs sm:text-sm text-rose-100 italic font-semibold leading-relaxed">
               &quot;{currentQuestion?.monster_text || monster.lore}&quot;
             </p>
           </div>
@@ -751,7 +852,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <div className="lg:col-span-7 flex flex-col gap-4">
           
           {/* Player Status Card */}
-          <div className={`bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-xl p-4 relative overflow-hidden transition-all duration-300 ${
+          <div className={`bg-slate-950/50 backdrop-blur-md border border-slate-700/60 rounded-xl p-4 relative overflow-hidden transition-all duration-300 ${
             isAttacking === 'player' ? 'animate-player-cast ring-2 ring-cyan-500/60 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : ''
           } ${isPlayerTakingDamage ? 'animate-hit-flash animate-shake ring-2 ring-rose-500 shadow-[0_0_25px_rgba(239,68,68,0.4)]' : ''} ${
             isShieldActive ? 'ring-2 ring-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.3)]' : ''
@@ -1020,7 +1121,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
           {/* Grammar Challenge Card (Question & Options) */}
           {currentQuestion && monster.currentHp > 0 && player.hp > 0 && (
-            <div className="bg-slate-900/90 border border-amber-500/30 rounded-xl p-5 shadow-xl flex-1 flex flex-col justify-between">
+            <div className="bg-slate-950/55 backdrop-blur-md border border-amber-500/35 rounded-xl p-5 shadow-xl flex-1 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-mono font-bold text-amber-400 flex items-center gap-1.5 uppercase">
@@ -1033,19 +1134,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                         soundManager.playBlip();
                         setIsCodexOpen(true);
                       }}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold cursor-pointer transition-all hover:border-amber-400 shadow-sm"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/45 text-amber-300 text-[11px] font-mono font-bold cursor-pointer transition-all hover:border-amber-400 shadow-sm whitespace-nowrap shrink-0"
                       title="Buka Codex Formula materi saat ini"
                     >
                       <BookMarked className="w-3.5 h-3.5 text-amber-400" />
                       <span>Rumus & Kaidah</span>
                     </button>
-                    <span className="text-[11px] font-mono text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                    <span className="text-[11px] font-mono text-slate-300 bg-slate-950/65 px-2 py-0.5 rounded border border-slate-700/60">
                       {currentQuestion.category || `Tier ${monster.tier}`}
                     </span>
                   </div>
                 </div>
 
-                <p className="text-sm font-semibold text-slate-100 mb-4 leading-relaxed">
+                <p className="text-sm font-semibold text-slate-50 mb-4 leading-relaxed">
                   {currentQuestion.question}
                 </p>
 
@@ -1059,7 +1160,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     const isUserPick = selectedOption === idx;
                     const isEliminated = eliminatedOptions.has(idx);
 
-                    let optionBorder = 'border-slate-800 hover:border-amber-500/50 bg-slate-950/70 text-slate-200';
+                    let optionBorder = 'border-slate-700/70 hover:border-amber-400/70 bg-slate-950/60 text-slate-100';
                     if (isEliminated) {
                       optionBorder = 'border-red-950/60 bg-red-950/20 text-red-400/50 line-through opacity-40 cursor-not-allowed';
                     } else if (isSelected && !isAnswered) {
@@ -1128,7 +1229,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 ) : (
                   <div className="space-y-3 pt-2 border-t border-slate-800">
                     {/* Educational feedback note */}
-                    <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 flex items-start gap-2.5">
+                    <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-700/70 text-xs font-mono text-slate-200 flex items-start gap-2.5">
                       <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-amber-400">Penjelasan Kaidah: </span>
@@ -1156,16 +1257,73 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {/* Scrollable Battle Log Component */}
       <BattleLog
         logs={battleLogs}
+        combatStats={{
+          questionsAnswered: player.questionsAnswered,
+          correctAnswers: player.correctAnswers,
+          totalDamageDealt: player.totalDamageDealt,
+          totalDamageTaken: player.totalDamageTaken,
+        }}
         onClearLogs={() => setBattleLogs([])}
       />
 
-      {/* Grammar Codex Modal with Sector Formulas */}
-      <GrammarCodexModal
-        isOpen={isCodexOpen}
-        onClose={() => setIsCodexOpen(false)}
-        sectorIndex={encounterIndex}
-        stageId={stageId}
-      />
+        {/* Grammar Codex Modal with Sector Formulas */}
+        <GrammarCodexModal
+          isOpen={isCodexOpen}
+          onClose={() => setIsCodexOpen(false)}
+          sectorIndex={encounterIndex}
+          stageId={stageId}
+        />
+      </div>
+
+      {/* End-of-Battle Screen-Wide Celebration Flash, Shockwave & Particle Burst */}
+      {isSectorDefeated && (
+        <div
+          className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center overflow-hidden"
+          aria-live="polite"
+        >
+          {/* Screen-Wide Impact Flash */}
+          <div
+            className={`absolute inset-0 animate-boss-flash ${
+              encounterIndex >= totalEncounters - 1
+                ? 'bg-gradient-to-b from-amber-100/95 via-amber-300/80 to-white/95'
+                : 'bg-gradient-to-b from-emerald-100/85 via-amber-200/70 to-white/85'
+            }`}
+          />
+
+          {/* Expanding Golden / Emerald Shockwave Rings */}
+          <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full border-4 border-amber-300/90 shadow-[0_0_40px_rgba(251,191,36,0.75)] animate-shockwave-ring" />
+          <div className="absolute w-44 h-44 sm:w-60 sm:h-60 rounded-full border-2 border-emerald-300/80 shadow-[0_0_30px_rgba(52,211,153,0.6)] animate-shockwave-ring-delayed" />
+
+          {/* 8-Way Radial Particle Sparks */}
+          <span className="absolute text-2xl text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-spark-n">✦</span>
+          <span className="absolute text-xl text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-spark-ne">★</span>
+          <span className="absolute text-2xl text-amber-200 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-spark-e">✦</span>
+          <span className="absolute text-xl text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-spark-se">★</span>
+          <span className="absolute text-2xl text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-spark-s">✦</span>
+          <span className="absolute text-xl text-rose-300 drop-shadow-[0_0_8px_rgba(251,113,133,0.9)] animate-spark-sw">★</span>
+          <span className="absolute text-2xl text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-spark-w">✦</span>
+          <span className="absolute text-xl text-amber-200 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-spark-nw">★</span>
+
+          {/* Stage / Boss Defeat Transition Banner */}
+          <div className="relative z-10 mx-4 px-7 py-5 rounded-2xl bg-slate-950/88 backdrop-blur-md border-2 border-amber-400/80 shadow-[0_0_45px_rgba(245,158,11,0.55)] text-center animate-victory-banner max-w-md">
+            <div className="text-xs font-mono uppercase tracking-widest text-emerald-300 font-bold mb-1">
+              {encounterIndex >= totalEncounters - 1
+                ? 'Boss Puncak Stage Dikalahkan'
+                : `Wilayah ${encounterIndex + 1} Disucikan`}
+            </div>
+            <div className="text-2xl sm:text-3xl font-extrabold font-title text-amber-300 tracking-wide">
+              {monster.name} Tumbang!
+            </div>
+            <p className="text-xs font-mono text-slate-200 mt-1.5">
+              {encounterIndex >= totalEncounters - 1
+                ? stageId < 3
+                  ? 'Membuka gerbang transisi menuju Stage berikutnya...'
+                  : 'Menuju podium kemenangan akhir...'
+                : 'Mempersiapkan transisi ke sektor berikutnya...'}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

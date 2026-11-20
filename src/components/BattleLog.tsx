@@ -10,13 +10,24 @@ import {
   Maximize2, 
   Minimize2, 
   Trash2,
-  Filter
+  Filter,
+  Activity,
+  Target,
+  Flame
 } from 'lucide-react';
 import { BattleLogEntry } from '../types/game';
 import { soundManager } from '../utils/audio';
 
+export interface CombatProgressStats {
+  questionsAnswered: number;
+  correctAnswers: number;
+  totalDamageDealt: number;
+  totalDamageTaken: number;
+}
+
 interface BattleLogProps {
   logs: BattleLogEntry[];
+  combatStats?: CombatProgressStats;
   onClearLogs?: () => void;
   className?: string;
 }
@@ -25,6 +36,7 @@ type LogFilter = 'all' | 'attacks' | 'damage_taken' | 'heals' | 'insights';
 
 export const BattleLog: React.FC<BattleLogProps> = ({
   logs,
+  combatStats,
   onClearLogs,
   className = ''
 }) => {
@@ -34,7 +46,6 @@ export const BattleLog: React.FC<BattleLogProps> = ({
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const lastScrollHeightRef = useRef<number>(0);
   const prevLogCountRef = useRef<number>(logs.length);
 
   // Filter logs according to active filter
@@ -77,59 +88,130 @@ export const BattleLog: React.FC<BattleLogProps> = ({
     setUnreadCount(0);
   };
 
-  // Track new logs and auto-scroll if at bottom
+  // Track new logs and auto-scroll if user is at bottom
   useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-
     const newLogsAdded = logs.length > prevLogCountRef.current;
+    let timerId: number | undefined;
+
     if (newLogsAdded) {
       if (!userHasScrolledUp) {
-        // Automatically scroll to bottom
-        setTimeout(() => {
+        timerId = window.setTimeout(() => {
           if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
           }
-        }, 50);
+        }, 40);
       } else {
-        // Increment unread count if user was inspecting historical logs
         setUnreadCount((c) => c + (logs.length - prevLogCountRef.current));
       }
     }
 
     prevLogCountRef.current = logs.length;
-    lastScrollHeightRef.current = el.scrollHeight;
+
+    return () => {
+      if (timerId !== undefined) {
+        window.clearTimeout(timerId);
+      }
+    };
   }, [logs, userHasScrolledUp]);
 
-  // Filter button click
+  // Keep view anchored to bottom when switching filter if not inspecting history
+  useEffect(() => {
+    if (!userHasScrolledUp && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [filter, userHasScrolledUp]);
+
   const handleFilterChange = (f: LogFilter) => {
     soundManager.playBlip();
     setFilter(f);
   };
 
-  // Render styled log text with highlighted spells, abilities, and numbers
+  // Format combat text with highlighted spells, items, option letters, and damage/heal numbers
+  const formatCombatText = (raw: string) => {
+    const parts = raw.split(
+      /('[^']+'|"[^"]+"|\b\d+\s+(?:damage|DMG)\b|\+\d+\s+(?:HP|DMG|poin)\b|\[[A-D]\])/gi
+    );
+
+    return parts.map((part, i) => {
+      if (/^'[^']+'$/.test(part) || /^"[^"]+"$/.test(part)) {
+        return (
+          <span
+            key={i}
+            className="font-extrabold text-cyan-300 underline decoration-cyan-500/40 decoration-1 underline-offset-2"
+          >
+            {part}
+          </span>
+        );
+      }
+      if (/^\+\d+\s+HP$/i.test(part) || /^\+\d+\s+poin$/i.test(part)) {
+        return (
+          <span
+            key={i}
+            className="font-black text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/30"
+          >
+            {part}
+          </span>
+        );
+      }
+      if (/\b\d+\s+(?:damage|DMG)\b/i.test(part) || /^\+\d+\s+DMG$/i.test(part)) {
+        return (
+          <span
+            key={i}
+            className="font-black text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/30"
+          >
+            {part}
+          </span>
+        );
+      }
+      if (/^\[[A-D]\]$/.test(part)) {
+        return (
+          <span
+            key={i}
+            className="font-black text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-amber-500/40"
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  // Render styled log text with highlighted abilities, critical hits, and damage/heal badges
   const renderLogMessage = (log: BattleLogEntry) => {
-    const { text, type, actionName, damage, heal } = log;
+    const { text, type, actionName, damage, heal, isCritical } = log;
+    const isIncomingDamage = type === 'monster' || type === 'damage-take';
 
     return (
       <div className="flex-1 text-xs font-mono leading-relaxed break-words">
-        {/* Render combat announcement line */}
-        <span className="tracking-wide">
-          {formatCombatText(text)}
-        </span>
+        <span className="tracking-wide">{formatCombatText(text)}</span>
 
-        {/* Action badge if available */}
-        {(actionName || damage !== undefined || heal !== undefined) && (
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+        {(actionName || damage !== undefined || heal !== undefined || isCritical) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
             {actionName && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold">
-                {type === 'hero' ? <Sword className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+                {type === 'hero' || type === 'damage-deal' ? (
+                  <Sword className="w-3 h-3" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
                 {actionName}
               </span>
             )}
+            {isCritical && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/60 text-amber-300 font-extrabold">
+                ⚡ CRIT!
+              </span>
+            )}
             {damage !== undefined && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/50 text-rose-300 font-extrabold shadow-sm">
-                💥 -{damage} DMG
+              <span
+                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded font-extrabold shadow-sm border ${
+                  isIncomingDamage
+                    ? 'bg-rose-950/90 border-rose-500/50 text-rose-300'
+                    : 'bg-amber-950/90 border-amber-500/50 text-amber-300'
+                }`}
+              >
+                {isIncomingDamage ? `🩸 -${damage} HP Diterima` : `💥 ${damage} DMG ke Monster`}
               </span>
             )}
             {heal !== undefined && (
@@ -143,50 +225,27 @@ export const BattleLog: React.FC<BattleLogProps> = ({
     );
   };
 
-  // Format combat text with highlighted quotes and numbers
-  const formatCombatText = (raw: string) => {
-    // Regex matching quoted spell names or keywords like 'Blade of Proper Agreement', 'Lexical Surge', etc.
-    const parts = raw.split(/('[^']+'|"[^"]+"|\b\d+\s+damage\b|\b\+\d+\s+poin\b)/gi);
-
-    return parts.map((part, i) => {
-      if (/^'[^']+'$/.test(part) || /^"[^"]+"$/.test(part)) {
-        return (
-          <span key={i} className="font-extrabold text-cyan-300 underline decoration-cyan-500/40 decoration-1 underline-offset-2">
-            {part}
-          </span>
-        );
-      }
-      if (/\b\d+\s+damage\b/i.test(part)) {
-        return (
-          <span key={i} className="font-black text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/30">
-            {part}
-          </span>
-        );
-      }
-      if (/\b\+\d+\s+poin\b/i.test(part)) {
-        return (
-          <span key={i} className="font-black text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/30">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
+  const accuracy =
+    combatStats && combatStats.questionsAnswered > 0
+      ? Math.round((combatStats.correctAnswers / combatStats.questionsAnswered) * 100)
+      : 100;
 
   return (
-    <div className={`bg-slate-950 border border-slate-800 rounded-xl shadow-xl flex flex-col relative overflow-hidden transition-all duration-300 ${className}`}>
+    <div
+      className={`bg-slate-950/55 backdrop-blur-md border border-slate-700/60 rounded-xl shadow-xl flex flex-col relative overflow-hidden transition-all duration-300 ${className}`}
+    >
       {/* Log Header & Controls */}
-      <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      <div className="bg-slate-900/55 border-b border-slate-700/60 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+          <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/35 text-emerald-400">
             <Terminal className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-title text-xs font-bold text-slate-200 tracking-wider flex items-center gap-1.5">
-              <span>BATTLE LOG & COMBAT CHRONICLE</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-                {logs.length}
+            <h4 className="font-title text-xs font-bold text-slate-100 tracking-wider flex items-center gap-1.5">
+              <span>BATTLE LOG &amp; COMBAT CHRONICLE</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-800/80 text-slate-300 border border-slate-600/60">
+                {filteredLogs.length}
+                {filter !== 'all' ? `/${logs.length}` : ''}
               </span>
             </h4>
           </div>
@@ -194,7 +253,7 @@ export const BattleLog: React.FC<BattleLogProps> = ({
 
         {/* Filter Badges & Actions */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-mono">
+          <div className="flex items-center bg-slate-950/65 p-0.5 rounded-lg border border-slate-700/60 text-[11px] font-mono">
             <button
               type="button"
               onClick={() => handleFilterChange('all')}
@@ -286,12 +345,44 @@ export const BattleLog: React.FC<BattleLogProps> = ({
         </div>
       </div>
 
+      {/* Live Combat Progress Summary Strip */}
+      {combatStats && (
+        <div className="bg-slate-950/45 border-b border-slate-700/50 px-4 py-1.5 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono text-slate-300">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <span className="flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Soal Dijawab:</span>
+              <strong className="text-slate-200">{combatStats.questionsAnswered}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Akurasi:</span>
+              <strong className={accuracy >= 70 ? 'text-emerald-400' : 'text-amber-400'}>
+                {combatStats.questionsAnswered > 0 ? `${accuracy}%` : '—'}
+              </strong>
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <span className="flex items-center gap-1.5">
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              <span>Total Serangan:</span>
+              <strong className="text-amber-300">{combatStats.totalDamageDealt} DMG</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+              <span>Damage Diterima:</span>
+              <strong className="text-rose-400">{combatStats.totalDamageTaken} HP</strong>
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Scrollable Log Stream */}
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className={`overflow-y-auto px-4 py-3 space-y-2 select-text font-mono transition-all duration-300 scroll-smooth ${
-          isExpanded ? 'h-80 sm:h-96' : 'h-44 sm:h-52'
+        className={`battle-log-scroll overflow-y-auto px-4 py-3 space-y-2 select-text font-mono transition-all duration-300 scroll-smooth ${
+          isExpanded ? 'h-80 sm:h-96' : 'h-48 sm:h-56'
         }`}
       >
         {filteredLogs.length === 0 ? (
